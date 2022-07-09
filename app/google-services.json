@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "520504685985",
+    "project_id": "agitpost",
+    "storage_bucket": "agitpost.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:520504685985:android:4ab933614389fb2be607e0",
+        "android_client_info": {
+          "package_name": "ggack.agitpos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "520504685985-gcbdr4nih874vh7jq64472on9kvbem9e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFkswaDBFNfxSX0CzsUc4Co1tSF-Bv2S8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "520504685985-gcbdr4nih874vh7jq64472on9kvbem9e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

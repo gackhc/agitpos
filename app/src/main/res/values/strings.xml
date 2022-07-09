@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">agitpos</string>
+    <string name="textCancel">취소</string>
+    <string name="textOk">확인</string>
+    <string name="textConfirm">확인</string>
+</resources>
