@@ -26,8 +26,6 @@ class MainActivity : BaseActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         viewModel.init()
-        FirebaseComm.init()
-        FirebaseComm.setAccount("ex1")
         val ft = supportFragmentManager.beginTransaction()
         ft.replace(binding.container.id, MainMasterFragment())
         ft.commit()

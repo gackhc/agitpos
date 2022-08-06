@@ -67,7 +67,6 @@ class MainViewModel : BaseViewModel() {
     }
 
     fun checkDeposits(context : Context) {
-
         if(Permissions.requestPermission(context, Manifest.permission.READ_SMS, 0, "")) {
             SmsManager.startCheck(context)
         }

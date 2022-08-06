@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.viewModels
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -14,15 +15,20 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import ggack.agitpos.R
+import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.databinding.ActivityLoginBinding
 import ggack.agitpos.databinding.ActivityMainBinding
+import ggack.agitpos.ui.viewmodel.LoginViewModel
+import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Utils
 
 class LoginActivity : AppCompatActivity() {
+    private val viewModel : LoginViewModel by viewModels()
+    private lateinit var binding : ActivityLoginBinding
+
     private lateinit var mGoogleClient : GoogleSignInClient
     private lateinit var mAuth: FirebaseAuth
 
-    private lateinit var binding : ActivityLoginBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,10 +40,21 @@ class LoginActivity : AppCompatActivity() {
             .build()
         mAuth = Firebase.auth
         mGoogleClient = GoogleSignIn.getClient(this, gso)
+        FirebaseComm.init()
+        FirebaseComm.setAccount("ex1")
+
+        initObserver()
     }
     private fun signIn() {
         val signInIntent = mGoogleClient.signInIntent
         startActivityForResult(signInIntent, 1000)
+    }
+
+
+    private fun initObserver() {
+        viewModel.liveUserData.observe(this) {
+        }
+        viewModel.
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
