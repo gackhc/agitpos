@@ -14,6 +14,9 @@ class UserNameAdapter(var map : Map<String, Map<String, Any>>, val listener : Li
     inner class MyViewHolder(var b : ItemUserNameBinding): RecyclerView.ViewHolder(b.root) {
         fun bind(name : String, item : UserModel?) {
             b.tvName.text = name
+            b.tvName.setOnClickListener {
+                listener.onClick(name, item)
+            }
         }
     }
 

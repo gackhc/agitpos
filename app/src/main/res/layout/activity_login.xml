@@ -21,9 +21,12 @@
             />
         <EditText
             android:id="@+id/etNickname"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="150dp"/>
+            android:layout_width="150dp"
+           android:inputType="text"
+            android:lines="1"
+           android:imeOptions="actionNext"
+           android:nextFocusForward="@id/etPin"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
     <LinearLayout
         android:id="@+id/llPassword"
@@ -37,14 +40,80 @@
             android:layout_height="wrap_content"
             android:text="PIN : "
             />
+
         <EditText
-            android:id="@+id/etPin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:maxEms="4"
-            android:minWidth="150dp"/>
+           android:id="@+id/etPin"
+           android:layout_width="150dp"
+           android:layout_height="wrap_content"
+           android:inputType="numberPassword"
+           android:lines="1"
+           android:maxLength="4"
+           android:imeOptions="actionDone"
+           android:minWidth="150dp" />
     </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+       android:id="@+id/rvNickName"
+       android:layout_width="150dp"
+       android:layout_height="wrap_content"
+       app:layout_constraintTop_toBottomOf="@id/llName"
+       app:layout_constraintEnd_toEndOf="@id/llName"
+       android:background="@color/gray"
+       app:layout_constraintHeight_min="100dp"
+       app:layout_constraintHeight_max="400dp"
+       android:visibility="gone"
+       tools:ignore="NotSibling" />
+
+
+    <TextView
+       android:id="@+id/tvNick1"
+       android:layout_width="150dp"
+       android:layout_height="wrap_content"
+       android:background="@color/white"
+       android:padding="5dp"
+       android:visibility="gone"
+       app:layout_constraintTop_toBottomOf="@id/llName"
+       app:layout_constraintEnd_toEndOf="@id/llName"
+       />
+    <TextView
+       android:id="@+id/tvNick2"
+       android:layout_width="150dp"
+       android:layout_height="wrap_content"
+       android:background="@color/white"
+       android:padding="5dp"
+       android:visibility="gone"
+       app:layout_constraintTop_toBottomOf="@id/tvNick1"
+       app:layout_constraintEnd_toEndOf="@id/llName"
+       />
+    <TextView
+       android:id="@+id/tvNick3"
+       android:layout_width="150dp"
+       android:layout_height="wrap_content"
+       android:background="@color/white"
+       android:padding="5dp"
+       android:visibility="gone"
+       app:layout_constraintTop_toBottomOf="@id/tvNick2"
+       app:layout_constraintEnd_toEndOf="@id/llName"
+       />
+    <TextView
+       android:id="@+id/tvNick4"
+       android:layout_width="150dp"
+       android:layout_height="wrap_content"
+       android:background="@color/white"
+       android:padding="5dp"
+       android:visibility="gone"
+       app:layout_constraintTop_toBottomOf="@id/tvNick3"
+       app:layout_constraintEnd_toEndOf="@id/llName"
+       />
+    <TextView
+       android:id="@+id/tvNick5"
+       android:layout_width="150dp"
+       android:layout_height="wrap_content"
+       android:background="@color/white"
+       android:padding="5dp"
+       android:visibility="gone"
+       app:layout_constraintTop_toBottomOf="@id/tvNick4"
+       app:layout_constraintEnd_toEndOf="@id/llName"
+       />
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"

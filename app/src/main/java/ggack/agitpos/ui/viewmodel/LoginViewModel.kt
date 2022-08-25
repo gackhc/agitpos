@@ -22,26 +22,28 @@ import ggack.agitpos.utils.Permissions
 class LoginViewModel : BaseViewModel() {
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>>
     fun init() {
-        liveUserData = Transformations.map(FirebaseComm.liveUserList){it}
+        liveUserData = Transformations.map(FirebaseComm.liveUserList){
+            it
+        }
     }
 
     var mapUserList = mapOf<String, Map<String, Any>>()
-    fun GetUserByConsonant(key : String) : ArrayList<String>{
+    fun GetUserByConsonant(key : String) : List<String>{
         val searcher = CharSearcher()
-        val arrRetData = ArrayList<String>()
-        mapUserList.keys.let {
+        val listData = mutableListOf<String>()
+        liveUserData.value?.keys?.let {
             for (name in it) {
                 if (searcher.matchString(name, key))
-                    arrRetData.add(name)
+                    listData.add(name)
             }
-            if (arrRetData.size == 0) {
+            if (listData.size == 0) {
                 for (name in it) {
                     if (name >= key)
-                        arrRetData.add(name)
+                        listData.add(name)
                 }
             }
         }
-        return arrRetData
+        return listData
     }
 
     fun refreshUser() {

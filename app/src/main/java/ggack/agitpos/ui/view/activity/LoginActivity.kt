@@ -3,9 +3,17 @@ package ggack.agitpos.ui.view.activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.ContactsContract
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
+import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.widget.addTextChangedListener
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -16,11 +24,16 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
+import ggack.agitpos.data.model.FromMap
 import ggack.agitpos.databinding.ActivityLoginBinding
 import ggack.agitpos.databinding.ActivityMainBinding
+import ggack.agitpos.listener.ListListener
+import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.viewmodel.LoginViewModel
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Utils
+import java.util.*
+import kotlin.concurrent.timer
 
 class LoginActivity : AppCompatActivity() {
     private val viewModel : LoginViewModel by viewModels()
@@ -28,12 +41,15 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var mGoogleClient : GoogleSignInClient
     private lateinit var mAuth: FirebaseAuth
-
+    private var mTimerRefresh : Timer? = null
+    private var mAdapter : UserNameAdapter? = null
+    private var mMapName : Map<String, Map<String, Any>> = HashMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        viewModel.init()
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             //.requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -43,8 +59,24 @@ class LoginActivity : AppCompatActivity() {
         FirebaseComm.init()
         FirebaseComm.setAccount("ex1")
 
+        initAdapter()
         initObserver()
+        initView()
     }
+
+    override fun onResume() {
+        super.onResume()
+        mTimerRefresh = timer(period = 10000, initialDelay = 0) {
+            viewModel.refreshUser()
+        }
+        binding.etNickname.setText("")
+        binding.etPin.setText("")
+    }
+    override fun onPause() {
+        super.onPause()
+        mTimerRefresh?.cancel()
+    }
+
     private fun signIn() {
         val signInIntent = mGoogleClient.signInIntent
         startActivityForResult(signInIntent, 1000)
@@ -53,8 +85,11 @@ class LoginActivity : AppCompatActivity() {
 
     private fun initObserver() {
         viewModel.liveUserData.observe(this) {
+            mMapName = it
+            mAdapter?.map = it
+            mAdapter?.keys = it.keys.toList()
+            mAdapter?.notifyDataSetChanged()
         }
-        viewModel.
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -88,5 +123,74 @@ class LoginActivity : AppCompatActivity() {
                     Log.w("login", "signInWithCredential:failure", task.exception)
                 }
             }
+    }
+
+    private fun initView() {
+        binding.etNickname.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus)
+                binding.rvNickName.visibility = View.VISIBLE
+            else
+                binding.rvNickName.visibility = View.GONE
+        }
+        binding.etNickname.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            }
+            override fun afterTextChanged(s: Editable?) {
+                val list = viewModel.GetUserByConsonant(s.toString())
+                mAdapter?.keys = list
+                mAdapter?.notifyDataSetChanged()
+            }
+        })
+
+        binding.root.setOnClickListener {
+            binding.rvNickName.visibility = View.GONE
+        }
+        binding.etNickname.setOnClickListener {
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(binding.etNickname,0)
+            binding.rvNickName.visibility = View.VISIBLE
+        }
+
+        binding.etPin.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            }
+            override fun afterTextChanged(s: Editable?) {
+                if(s?.length == 4) {
+                    mMapName[binding.etNickname.text.toString()]?.let {
+                        val model = FromMap.toUserModel(it)
+                        if (s.toString() == model.pin) {
+                            Toast.makeText(this@LoginActivity, "로그인 성공", Toast.LENGTH_SHORT).show()
+
+                            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                            imm.hideSoftInputFromWindow(currentFocus?.windowToken,0)
+
+                            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                        } else
+                            binding.etPin.setText("")
+
+                    } ?: run {
+                        Toast.makeText(this@LoginActivity, "닉네임을 선택해주세요", Toast.LENGTH_SHORT).show()
+                        binding.etNickname.requestFocus()
+                    }
+                }
+            }
+        })
+
+    }
+
+    private fun initAdapter() {
+        binding.rvNickName.layoutManager = LinearLayoutManager(this)
+        mAdapter = UserNameAdapter(hashMapOf(), object : ListListener{
+            override fun onClick(key: String, item: Any?) {
+                super.onClick(key, item)
+                binding.etNickname.setText(key)
+                binding.rvNickName.visibility = View.GONE
+            }
+        })
+        binding.rvNickName.adapter = mAdapter
     }
 }
