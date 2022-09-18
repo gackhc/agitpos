@@ -6,4 +6,5 @@ interface ListListener {
     fun onRemove(key : String, item : Any?) {}
     fun onChange(key : String, item : Any?) {}
     fun onRecord(key : String, item : Any?) {}
+    fun onChange(position : Int) {}
 }

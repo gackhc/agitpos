@@ -20,7 +20,7 @@ import ggack.agitpos.utils.CharSearcher
 import ggack.agitpos.utils.Permissions
 
 class LoginViewModel : BaseViewModel() {
-    lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>>
+    lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     fun init() {
         liveUserData = Transformations.map(FirebaseComm.liveUserList){
             it

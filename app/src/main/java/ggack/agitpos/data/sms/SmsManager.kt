@@ -15,20 +15,24 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ggack.agitpos.data.model.DepositModel
+import ggack.agitpos.utils.Utils
 import java.lang.StringBuilder
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
 object SmsManager {
     val liveDepositArray = MutableLiveData<List<DepositModel>>()
-    fun startCheck(act : Context){
-        val cr: ContentResolver = act.contentResolver
+    fun startCheck(con : Context){
+        val cr: ContentResolver = con.contentResolver
         val cursor: Cursor? = cr.query(Uri.parse("content://sms/inbox"), null, "address=?", arrayOf("15993333"), null)
+        val lastCheck = Utils.getPrefLong(con, "smsCheck")
+        Utils.setPref(con, "smsCheck", Utils.getDateLong(LocalDateTime.now()))
         cursor?.let {
             val dateidx: Int = cursor.getColumnIndex("date")
             val bodyidx: Int = cursor.getColumnIndex("body")
@@ -39,11 +43,10 @@ object SmsManager {
                 cursor.moveToNext()
                 while (!cursor.isClosed) {
                     val date: Long = cursor.getLong(dateidx)
-                    val datetime = LocalDateTime.ofInstant(
-                        Instant.ofEpochMilli(date),
-                        ZoneOffset.systemDefault()
-                    )
-                    val sDate: String = formatter.format(Date(date))
+                    if(date < lastCheck)
+                        break
+                    val datetime = Utils.getDate(date)
+                    val sdf = DateTimeFormatter.ofPattern("MMdd-HH:mm:ss")
                     val body: String = cursor.getString(bodyidx)
                     val strArray = body.split("\n")
                     val nickName = strArray[strArray.lastIndex - 1].trim()
@@ -52,10 +55,8 @@ object SmsManager {
                            .replace("원", "")
                            .replace(",", "").toInt()
                        Log.e("debug", "$nickName : $money")
-                        list.add(DepositModel(money, nickName))
+                       list.add(DepositModel(datetime.format(sdf), money, nickName))
                     }
-                    if (count++ == 10)
-                        break
                     if (cursor.isLast)
                         break
                     cursor.moveToNext()

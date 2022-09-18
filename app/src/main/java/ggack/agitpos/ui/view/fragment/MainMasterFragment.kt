@@ -27,7 +27,7 @@ class MainMasterFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         binding?.tvName?.setOnClickListener {
             (activity as MainActivity).startFragment(UserListFragment())
         }

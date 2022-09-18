@@ -1,6 +1,7 @@
 package ggack.agitpos.ui.view.activity
 
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.ContactsContract
@@ -28,6 +29,8 @@ import ggack.agitpos.data.model.FromMap
 import ggack.agitpos.databinding.ActivityLoginBinding
 import ggack.agitpos.databinding.ActivityMainBinding
 import ggack.agitpos.listener.ListListener
+import ggack.agitpos.service.DepositService
+import ggack.agitpos.service.RestartService
 import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.viewmodel.LoginViewModel
 import ggack.agitpos.ui.viewmodel.MainViewModel
@@ -59,6 +62,8 @@ class LoginActivity : AppCompatActivity() {
         FirebaseComm.init()
         FirebaseComm.setAccount("ex1")
 
+        startForegroundService(Intent(this, RestartService::class.java))
+
         initAdapter()
         initObserver()
         initView()
@@ -85,10 +90,12 @@ class LoginActivity : AppCompatActivity() {
 
     private fun initObserver() {
         viewModel.liveUserData.observe(this) {
-            mMapName = it
-            mAdapter?.map = it
-            mAdapter?.keys = it.keys.toList()
-            mAdapter?.notifyDataSetChanged()
+            it?.let {
+                mMapName = it
+                mAdapter?.map = it
+                mAdapter?.keys = it.keys.toList()
+                mAdapter?.notifyDataSetChanged()
+            }
         }
     }
 
@@ -167,8 +174,10 @@ class LoginActivity : AppCompatActivity() {
 
                             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                             imm.hideSoftInputFromWindow(currentFocus?.windowToken,0)
-
-                            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                            val intentMain = Intent(this@LoginActivity, MainActivity::class.java)
+                            intentMain.putExtra("name", binding.etNickname.text.toString())
+                            intentMain.putExtra("isMaster", true)
+                            startActivity(intentMain)
                         } else
                             binding.etPin.setText("")
 

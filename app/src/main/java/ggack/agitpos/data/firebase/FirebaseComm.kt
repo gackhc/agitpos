@@ -12,8 +12,8 @@ object FirebaseComm {
     private lateinit var mDatabase : DatabaseReference
     private var mAccount : String? = null
 
-    val liveUserList = MutableLiveData<Map<String, Map<String, Any>>>()
-    val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>>()
+    val liveUserList = MutableLiveData<Map<String, Map<String, Any>>?>(null)
+    val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     fun init() {
         mDatabase = FirebaseDatabase.getInstance().reference
     }

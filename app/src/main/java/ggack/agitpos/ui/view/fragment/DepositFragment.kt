@@ -39,9 +39,11 @@ class DepositFragment : Fragment() {
 
     fun initObserver() {
         viewModel.liveDeposits.observe(viewLifecycleOwner) {
-            mapDeposit = it
-            adapter?.keys = it.keys.toList()
-            adapter?.notifyDataSetChanged()
+            it?.let {
+                mapDeposit = it
+                adapter?.keys = it.keys.toList()
+                adapter?.notifyDataSetChanged()
+            }
         }
     }
 

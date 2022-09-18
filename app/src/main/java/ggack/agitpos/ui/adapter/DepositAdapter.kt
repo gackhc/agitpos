@@ -19,7 +19,7 @@ class DepositAdapter(private val map : Map<String, Map<String, Any>>, val listen
         fun bind(date : String, item : DepositModel?) {
             b.tvName.text = item?.name
             b.tvMoney.text = item?.money.toString()
-            b.tvDate.text = date
+            b.tvDate.text = item?.date
             b.btnSetValue.setOnClickListener {
                 listener.onChange(date, item)
             }

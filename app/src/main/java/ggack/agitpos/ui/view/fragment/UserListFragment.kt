@@ -45,10 +45,12 @@ class UserListFragment : Fragment() {
 
     fun initObserver() {
         viewModel.liveUserData.observe(viewLifecycleOwner) {
-            mapUserList = it
-            adapter?.map = it
-            adapter?.keys = it.keys.toList()
-            adapter?.notifyDataSetChanged()
+            it?.let {
+                mapUserList = it
+                adapter?.map = it
+                adapter?.keys = it.keys.toList()
+                adapter?.notifyDataSetChanged()
+            }
         }
     }
 
