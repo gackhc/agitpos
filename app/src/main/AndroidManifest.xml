@@ -4,8 +4,13 @@
    package="ggack.agitpos">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
        tools:ignore="ProtectedPermissions" />
     <application
@@ -31,13 +36,22 @@
         <service
            android:name=".service.DepositService"
            android:enabled="true"
-           android:exported="false" />
+           android:exported="true" />
 
         <service
            android:name=".service.RestartService"
            android:enabled="true"
            android:exported="true"
            />
+        <receiver android:name=".service.AlarmReceiver"/>
+        <receiver android:name=".service.RebootReceiver"
+           android:enabled="true"
+           android:exported="false"
+           android:process=":remote">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

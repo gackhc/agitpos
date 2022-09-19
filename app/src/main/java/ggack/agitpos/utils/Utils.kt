@@ -52,7 +52,7 @@ object Utils {
         )
     }
     fun getDateLong(date : LocalDateTime) : Long {
-        return date.atZone(ZoneId.systemDefault()).toEpochSecond()
+        return date.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
 
     fun getPref(context: Context, key : String) : String {
@@ -61,8 +61,9 @@ object Utils {
     }
     fun setPref(context: Context, key : String, v : String) {
         val pref = context.getSharedPreferences("agitpos", Context.MODE_PRIVATE)
-        pref.edit().putString("key", v)
-        pref.edit().apply()
+        val edit= pref.edit()
+        edit.putString(key, v)
+        edit.apply()
     }
     fun getPrefLong(context: Context, key : String) : Long {
         val pref = context.getSharedPreferences("agitpos", Context.MODE_PRIVATE)
@@ -70,8 +71,9 @@ object Utils {
     }
     fun setPref(context: Context, key : String, v : Long) {
         val pref = context.getSharedPreferences("agitpos", Context.MODE_PRIVATE)
-        pref.edit().putLong("key", v)
-        pref.edit().apply()
+        val edit= pref.edit()
+        edit.putLong(key, v)
+        edit.apply()
     }
     fun getPrefInt(context: Context, key : String) : Int {
         val pref = context.getSharedPreferences("agitpos", Context.MODE_PRIVATE)

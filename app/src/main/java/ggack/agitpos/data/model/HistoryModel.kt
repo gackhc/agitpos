@@ -1,6 +1,6 @@
 package ggack.agitpos.data.model
 
-data class RecordModel(
+data class HistoryModel(
     var date : Long,
     var nickname : String,
     var kind : String,

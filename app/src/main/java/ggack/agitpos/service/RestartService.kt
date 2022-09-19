@@ -2,12 +2,15 @@ package ggack.agitpos.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import ggack.agitpos.R
+import ggack.agitpos.ui.view.activity.LoginActivity
 import ggack.agitpos.utils.Utils
 
 class RestartService : Service() {
@@ -16,8 +19,10 @@ class RestartService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.e("RestartService", "onStartCommand")
         var content = "입금 확인중"
         val builder = NotificationCompat.Builder(this, getString(R.string.app_name))
+        builder.setSmallIcon(R.drawable.ic_launcher_foreground)
         //builder.setSmallIcon(R.drawable.ic)
         val style = NotificationCompat.BigTextStyle()
         style.bigText("")
@@ -33,6 +38,10 @@ class RestartService : Service() {
         builder.setDefaults(0)
         builder.setSound(null)
         builder.priority = NotificationCompat.PRIORITY_LOW
+        val notificationIntent = Intent(this, LoginActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
+        builder.setContentIntent(pendingIntent)
+
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notiChannel = NotificationChannel(getString(R.string.app_name), getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT)
@@ -42,7 +51,7 @@ class RestartService : Service() {
             manager.createNotificationChannel(notiChannel)
         }
         val notification = builder.build()
-        startForeground(1621, notification)
+        startForeground(2101, notification)
 
         /////////////////////////////////////////////////////////////////////
 
@@ -52,6 +61,6 @@ class RestartService : Service() {
 
         stopForeground(true)
         stopSelf()
-        return START_NOT_STICKY;
+        return START_NOT_STICKY
     }
 }

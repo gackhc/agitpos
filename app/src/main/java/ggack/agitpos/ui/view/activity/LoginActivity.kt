@@ -1,5 +1,6 @@
 package ggack.agitpos.ui.view.activity
 
+import android.Manifest
 import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -37,6 +38,15 @@ import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Utils
 import java.util.*
 import kotlin.concurrent.timer
+import androidx.core.app.ActivityCompat
+
+import android.content.pm.PackageManager
+import android.net.Uri
+
+import androidx.core.content.ContextCompat
+import android.os.PowerManager
+import android.provider.Settings
+
 
 class LoginActivity : AppCompatActivity() {
     private val viewModel : LoginViewModel by viewModels()
@@ -50,6 +60,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         viewModel.init()
@@ -62,15 +73,33 @@ class LoginActivity : AppCompatActivity() {
         FirebaseComm.init()
         FirebaseComm.setAccount("ex1")
 
-        startForegroundService(Intent(this, RestartService::class.java))
 
+        initPowerMode()
         initAdapter()
         initObserver()
         initView()
     }
-
+    fun initPowerMode() {
+        val pm = applicationContext.getSystemService(POWER_SERVICE) as PowerManager
+        var isWhiteListing = pm.isIgnoringBatteryOptimizations(applicationContext.packageName)
+        if (!isWhiteListing) {
+            val intent = Intent()
+            intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+            intent.data = Uri.parse("package:" + applicationContext.packageName)
+            startActivity(intent)
+        }
+        startForegroundService(Intent(this, RestartService::class.java))
+    }
     override fun onResume() {
         super.onResume()
+
+        val permissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS)
+        val permissionCheck =
+            ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) + ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, permissions, 1)
+        }
+
         mTimerRefresh = timer(period = 10000, initialDelay = 0) {
             viewModel.refreshUser()
         }
@@ -176,7 +205,8 @@ class LoginActivity : AppCompatActivity() {
                             imm.hideSoftInputFromWindow(currentFocus?.windowToken,0)
                             val intentMain = Intent(this@LoginActivity, MainActivity::class.java)
                             intentMain.putExtra("name", binding.etNickname.text.toString())
-                            intentMain.putExtra("isMaster", true)
+                            intentMain.putExtra("isMaster", binding.etNickname.text.toString() == "마스터")
+
                             startActivity(intentMain)
                         } else
                             binding.etPin.setText("")

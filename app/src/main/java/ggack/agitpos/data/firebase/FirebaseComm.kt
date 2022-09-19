@@ -5,7 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import ggack.agitpos.data.model.DepositModel
+import ggack.agitpos.data.model.HistoryModel
 import ggack.agitpos.data.model.UserModel
+import ggack.agitpos.utils.Utils
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 object FirebaseComm {
     private val TAG = "Firebase"
@@ -78,9 +83,9 @@ object FirebaseComm {
             }
         }
     }
-    fun addDepositItem(map : Map<String, DepositModel>) {
+    fun addDepositItem(model : DepositModel) {
         mAccount?.let { it ->
-            mDatabase.child(it).child("deposits").setValue(map).addOnSuccessListener {
+            mDatabase.child(it).child("deposits").child(model.date).setValue(model.getMap()).addOnSuccessListener {
                 getDeposits()
             }.addOnFailureListener {
                 Log.e(TAG, "Error removeDepositItem", it)
@@ -105,6 +110,13 @@ object FirebaseComm {
                 }.addOnFailureListener {
                     Log.e(TAG, "Error changePin", it)
                 }
+        }
+    }
+    fun addHistory(historyModel : HistoryModel) {
+        val month = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("yyyyMM"))
+        val datetime = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("ddHHmmssSSS"))
+        mAccount?.let { it ->
+            mDatabase.child(it).child("history").child(month).child(datetime).setValue(historyModel.getMap())
         }
     }
 }
