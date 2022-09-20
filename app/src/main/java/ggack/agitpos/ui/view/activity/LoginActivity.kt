@@ -186,7 +186,7 @@ class LoginActivity : AppCompatActivity() {
             }
             override fun afterTextChanged(s: Editable?) {
                 val list = viewModel.GetUserByConsonant(s.toString())
-                mAdapter?.keys = list
+                mAdapter?.keys = list.sorted()
                 mAdapter?.notifyDataSetChanged()
             }
         })

@@ -12,11 +12,9 @@ import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.DepositModel
 import ggack.agitpos.data.model.FromMap
 import ggack.agitpos.data.model.HistoryModel
-import ggack.agitpos.data.model.UserModel
 import ggack.agitpos.databinding.FragmentListBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.DepositAdapter
-import ggack.agitpos.ui.adapter.UserAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.SimpleDialog
@@ -28,7 +26,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.HashMap
 
 class DepositFragment : Fragment() {
     private var binding : FragmentListBinding? = null
@@ -78,7 +75,7 @@ class DepositFragment : Fragment() {
                 super.onClick(key, item)
                 val model = item as DepositModel
                 val dlg = SimpleListDialog(requireContext(), mMapName.keys.toList()) { name ->
-                    addAll(name)
+                    addAll(model.name, name)
                 }
                 dlg.setBtnTxt("취소")
                 dlg.show()
@@ -92,7 +89,7 @@ class DepositFragment : Fragment() {
                         Activity.RESULT_OK -> {
                             mUserPrepared = false
                             FirebaseComm.addUser(model.name)
-                            addAll(model.name)
+                            addAll(model.name, model.name)
                         }
                     }
                 }
@@ -102,7 +99,7 @@ class DepositFragment : Fragment() {
         })
         binding?.recyclerView?.adapter = adapter
     }
-    fun addAll(name : String) {
+    fun addAll(originName : String, name : String) {
         CoroutineScope(Dispatchers.Main).launch {
             while(!mUserPrepared) {
                 delay(10)
@@ -112,7 +109,7 @@ class DepositFragment : Fragment() {
             keys.forEach {date ->
                 mapDeposit[date]?.let{map->
                     val m = FromMap.toDepositModel(map)
-                    if(m.name == name){
+                    if(m.name == originName){
                         activity?.runOnUiThread {
                             setData(date, name, m)
                         }
