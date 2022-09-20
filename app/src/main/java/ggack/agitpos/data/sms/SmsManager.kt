@@ -60,7 +60,7 @@ object SmsManager {
                     val body: String = cursor.getString(bodyidx)
                     val strArray = body.split("\n")
                     try{
-                        val nickName = strArray[strArray.lastIndex - 1].trim()
+                        val nickName = strArray[strArray.lastIndex - 1].trim().lowercase()
                         if(strArray[strArray.lastIndex - 2].contains("입금")) {
                             val money = strArray[strArray.lastIndex - 2].trim().replace("입금 ", "")
                                .replace("원", "")

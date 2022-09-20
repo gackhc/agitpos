@@ -12,16 +12,24 @@ import ggack.agitpos.data.model.UserModel
 import ggack.agitpos.databinding.ItemDepositBinding
 import ggack.agitpos.databinding.ItemUserListBinding
 import ggack.agitpos.listener.ListListener
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-class DepositAdapter(private val map : Map<String, Map<String, Any>>, val listener : ListListener) : RecyclerView.Adapter<DepositAdapter.MyViewHolder>(){
-    var keys = map.keys.toList()
+class DepositAdapter(var map : Map<String, Map<String, Any>>, val listener : ListListener) : RecyclerView.Adapter<DepositAdapter.MyViewHolder>(){
+    var keys = map.keys.toMutableList()
     inner class MyViewHolder(var b: ItemDepositBinding): RecyclerView.ViewHolder(b.root) {
         fun bind(date : String, item : DepositModel?) {
+            val dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
+            val dtfTo = DateTimeFormatter.ofPattern("MM-dd\nHH:mm:ss")
+
             b.tvName.text = item?.name
             b.tvMoney.text = item?.money.toString()
-            b.tvDate.text = item?.date
+            b.tvDate.text = LocalDateTime.parse(item?.date, dtf).format(dtfTo)
             b.btnSetValue.setOnClickListener {
-                listener.onChange(date, item)
+                listener.onClick(date, item)
+            }
+            b.btnAdd.setOnClickListener {
+                listener.onADD(date, item)
             }
         }
     }

@@ -46,6 +46,9 @@ import android.net.Uri
 import androidx.core.content.ContextCompat
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.NotificationManagerCompat
+import ggack.agitpos.utils.SimpleDialog
 
 
 class LoginActivity : AppCompatActivity() {
@@ -57,7 +60,6 @@ class LoginActivity : AppCompatActivity() {
     private var mTimerRefresh : Timer? = null
     private var mAdapter : UserNameAdapter? = null
     private var mMapName : Map<String, Map<String, Any>> = HashMap()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -71,10 +73,7 @@ class LoginActivity : AppCompatActivity() {
         mAuth = Firebase.auth
         mGoogleClient = GoogleSignIn.getClient(this, gso)
         FirebaseComm.init()
-        FirebaseComm.setAccount("ex1")
-
-
-        initPowerMode()
+        FirebaseComm.setAccount("gackhc@gmailcom")
         initAdapter()
         initObserver()
         initView()
@@ -98,8 +97,20 @@ class LoginActivity : AppCompatActivity() {
             ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) + ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, permissions, 1)
+            return
+        } else {
+            val sets = NotificationManagerCompat.getEnabledListenerPackages(this)
+            if (!sets.contains(packageName)) {
+                val dlg = SimpleDialog(this, SimpleDialog.TYPE_ONE_BUTTON) {
+                    startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+                }
+                dlg.setText("알림 설정 해주세요")
+                dlg.show()
+                return
+            }
         }
 
+        initPowerMode()
         mTimerRefresh = timer(period = 10000, initialDelay = 0) {
             viewModel.refreshUser()
         }
@@ -122,7 +133,7 @@ class LoginActivity : AppCompatActivity() {
             it?.let {
                 mMapName = it
                 mAdapter?.map = it
-                mAdapter?.keys = it.keys.toList()
+                mAdapter?.keys = it.keys.toList().sorted()
                 mAdapter?.notifyDataSetChanged()
             }
         }
@@ -196,7 +207,7 @@ class LoginActivity : AppCompatActivity() {
             }
             override fun afterTextChanged(s: Editable?) {
                 if(s?.length == 4) {
-                    mMapName[binding.etNickname.text.toString()]?.let {
+                    mMapName[binding.etNickname.text.toString().lowercase()]?.let {
                         val model = FromMap.toUserModel(it)
                         if (s.toString() == model.pin) {
                             Toast.makeText(this@LoginActivity, "로그인 성공", Toast.LENGTH_SHORT).show()
@@ -204,8 +215,8 @@ class LoginActivity : AppCompatActivity() {
                             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                             imm.hideSoftInputFromWindow(currentFocus?.windowToken,0)
                             val intentMain = Intent(this@LoginActivity, MainActivity::class.java)
-                            intentMain.putExtra("name", binding.etNickname.text.toString())
-                            intentMain.putExtra("isMaster", binding.etNickname.text.toString() == "마스터")
+                            intentMain.putExtra("name", binding.etNickname.text.toString().lowercase())
+                            intentMain.putExtra("isMaster", binding.etNickname.text.toString() == "*master")
 
                             startActivity(intentMain)
                         } else
@@ -230,6 +241,7 @@ class LoginActivity : AppCompatActivity() {
                 binding.rvNickName.visibility = View.GONE
             }
         })
+
         binding.rvNickName.adapter = mAdapter
     }
 }

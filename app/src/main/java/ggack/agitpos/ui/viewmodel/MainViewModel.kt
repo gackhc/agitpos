@@ -62,11 +62,15 @@ class MainViewModel : BaseViewModel() {
         editText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(4))
         val dlg = AlertDialog.Builder(context).setView(editText).setTitle("Pin 수정").setPositiveButton("OK"
         ) { _, _ ->
-            try {
-                FirebaseComm.changePin(name, editText.text.toString())
-                Toast.makeText(context, "수정 성공", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(context, "수정 실패", Toast.LENGTH_SHORT).show()
+            if(editText.text.length != 4) {
+                Toast.makeText(context, "짧습니다", Toast.LENGTH_SHORT).show()
+            } else {
+                try {
+                    FirebaseComm.changePin(name, editText.text.toString())
+                    Toast.makeText(context, "수정 성공", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "수정 실패", Toast.LENGTH_SHORT).show()
+                }
             }
         }
         dlg.show()

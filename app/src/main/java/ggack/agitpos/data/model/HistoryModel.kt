@@ -5,14 +5,16 @@ data class HistoryModel(
     var nickname : String,
     var kind : String,
     var money : Int,
-    var item : String
+    var item : Map<String, Map<String, Any>> = mapOf(),
+    var etc : String = ""
     ) {
     fun getMap() : Map<String, Any> = mapOf(
         "date" to date,
         "nickname" to nickname,
         "kind" to kind,
         "money" to money,
-        "item" to item
+        "item" to item,
+        "etc" to etc
     )
 }
 

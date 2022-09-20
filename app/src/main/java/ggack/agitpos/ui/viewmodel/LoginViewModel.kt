@@ -31,7 +31,7 @@ class LoginViewModel : BaseViewModel() {
     fun GetUserByConsonant(key : String) : List<String>{
         val searcher = CharSearcher()
         val listData = mutableListOf<String>()
-        liveUserData.value?.keys?.let {
+        liveUserData.value?.keys?.sorted()?.let {
             for (name in it) {
                 if (searcher.matchString(name, key))
                     listData.add(name)

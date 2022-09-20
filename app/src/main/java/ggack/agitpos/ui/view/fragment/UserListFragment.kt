@@ -48,7 +48,7 @@ class UserListFragment : Fragment() {
             it?.let {
                 mapUserList = it
                 adapter?.map = it
-                adapter?.keys = it.keys.toList()
+                adapter?.keys = it.keys.toList().sorted()
                 adapter?.notifyDataSetChanged()
             }
         }

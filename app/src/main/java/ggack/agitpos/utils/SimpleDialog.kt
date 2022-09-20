@@ -1,5 +1,6 @@
 package ggack.agitpos.utils
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.view.LayoutInflater
@@ -12,9 +13,6 @@ class SimpleDialog(val context: Context, val type : Int, val resultCallback : Re
     companion object{
         const val TYPE_ONE_BUTTON = 1
         const val TYPE_TWO_BUTTON = 2
-
-        const val RESULT_OK = 1
-        const val RESULT_CANCEL = 2
     }
     private var dlg : Dialog = Dialog(context)
 
@@ -67,11 +65,11 @@ class SimpleDialog(val context: Context, val type : Int, val resultCallback : Re
         when(it){
             binding.btnOk, binding.btnConfirm->{
                 dismiss()
-                resultCallback?.onResult(RESULT_OK)
+                resultCallback?.onResult(Activity.RESULT_OK)
             }
             binding.btnCancel->{
                 dismiss()
-                resultCallback?.onResult(RESULT_CANCEL)
+                resultCallback?.onResult(Activity.RESULT_CANCELED)
             }
         }
     }

@@ -10,5 +10,6 @@ object FromMap {
         map["nickname"] as String,
         map["kind"] as String,
         (map["money"] as Long).toInt(),
-        map["item"] as String)
+        map["item"] as Map<String, Map<String, Any>>,
+        map["etc"] as String)
 }

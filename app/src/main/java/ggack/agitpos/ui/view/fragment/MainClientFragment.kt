@@ -1,8 +1,11 @@
 package ggack.agitpos.ui.view.fragment
 
+import android.app.Activity.RESULT_CANCELED
+import android.app.Activity.RESULT_OK
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,14 +14,20 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import ggack.agitpos.data.firebase.FirebaseComm
+import ggack.agitpos.data.model.HistoryModel
 import ggack.agitpos.data.model.ItemModel
+import ggack.agitpos.data.model.UserModel
 import ggack.agitpos.databinding.FragmentMainClientBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.adapter.PaymentAdapter
 import ggack.agitpos.ui.view.activity.MainActivity
 import ggack.agitpos.ui.viewmodel.MainViewModel
+import ggack.agitpos.utils.Constants
+import ggack.agitpos.utils.SimpleDialog
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -30,6 +39,8 @@ class MainClientFragment : Fragment() {
     private var mListPayment = mutableListOf<ItemModel>()
     private var mLogoutTimer : Timer? = null
     private var mTime = LocalTime.of(0,1,0)
+    private var mUser : UserModel? = null
+    private var mTotal = 0
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMainClientBinding.inflate(inflater, container, false)
         return binding?.root
@@ -43,9 +54,9 @@ class MainClientFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
-        binding?.tvName?.setOnClickListener {
-            (activity as MainActivity).startFragment(UserListFragment())
-        }
+//        binding?.tvName?.setOnClickListener {
+//            (activity as MainActivity).startFragment(UserListFragment())
+//        }
         initObserver()
         initItemAdapter()
         initPaymentAdapter()
@@ -58,13 +69,45 @@ class MainClientFragment : Fragment() {
         binding?.cvPinChange?.setOnClickListener {
             viewModel.popUpChangePin(requireContext())
         }
+        binding?.btnPayment?.setOnClickListener {
+            mUser?.let { user ->
+                val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
+                    when (it) {
+                        RESULT_OK -> {
+                            val map = mutableMapOf<String, Map<String, Any>>()
+                            mListPayment.forEach {model->
+                                map[model.name] = model.getMap()
+                            }
+                            FirebaseComm.setMoney(viewModel.userName, user.money - mTotal)
+                            FirebaseComm.addHistory(HistoryModel(
+                                Instant.now().toEpochMilli(),
+                                viewModel.userName,
+                                Constants.HISTORY_PAYMENT,
+                                mTotal,
+                                map,
+                                ""
+                            ))
+                            Toast.makeText(requireContext(), "결제가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                            activity?.onBackPressed()
+                        }
+                        RESULT_CANCELED -> {
+
+                        }
+                    }
+                }
+                dlg.setText("${binding?.tvTotal?.text} 을 결제하시겠습니까?")
+                dlg.show()
+            }
+        }
+
     }
 
     fun initObserver() {
         viewModel.liveCurrentUser.observe(viewLifecycleOwner) {user ->
             user?.let {
+                mUser = it
                 binding?.tvName?.text = viewModel.userName
-                binding?.tvPoint?.text = "${user.money} pt +"
+                binding?.tvPoint?.text = "${user.money} pt"
             }
         }
     }
@@ -72,11 +115,14 @@ class MainClientFragment : Fragment() {
         val listItems = listOf(
             ItemModel("일일 이용권", 6000, 1, null),
             ItemModel("월간 이용권", 40000, 1, null),
-            ItemModel("캔음료", 1000, 1, null),
+            ItemModel("캔음료", 1200, 1, null),
             ItemModel("라면", 2000, 1, null),
+            ItemModel("고급라면", 2500, 1, null),
             ItemModel("계란", 500, 1, null),
-            ItemModel("제조음료", 1000, 1, null),
-            ItemModel("우유음료", 2000, 1, null)
+            ItemModel("아메리카노", 1000, 1, null),
+            ItemModel("에이드류", 1000, 1, null),
+            ItemModel("라떼류", 2000, 1, null),
+            ItemModel("밀크티", 2000, 1, null)
         )
         binding?.rvItems?.layoutManager = GridLayoutManager(requireContext(), 4)
         binding?.rvItems?.adapter = ItemAdapter(listItems, object : ListListener {
@@ -87,7 +133,7 @@ class MainClientFragment : Fragment() {
                     mListPayment[position].cnt++
                     binding?.rvSelectedItems?.adapter?.notifyItemChanged(position)
                 } else {
-                    mListPayment.add(item as ItemModel)
+                    mListPayment.add((item as ItemModel).copy())
                     binding?.rvSelectedItems?.adapter?.notifyItemInserted(mListPayment.lastIndex)
                 }
                 setTotal()
@@ -100,6 +146,7 @@ class MainClientFragment : Fragment() {
             override fun onChange(position: Int) {
                 super.onChange(position)
                 setTotal()
+                Log.e("rvSelectedItems", mListPayment.toString())
             }
         })
     }
@@ -111,11 +158,11 @@ class MainClientFragment : Fragment() {
         return -1
     }
     fun setTotal() {
-        var total = 0
+        mTotal = 0
         mListPayment.forEach {
-            total += it.price * it.cnt
+            mTotal += it.price * it.cnt
         }
-        binding?.tvTotal?.text = "$total pt"
+        binding?.tvTotal?.text = "$mTotal pt"
     }
     fun setTimer() {
         mLogoutTimer?.cancel()

@@ -28,14 +28,11 @@ class MainMasterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
-        binding?.tvName?.setOnClickListener {
-            (activity as MainActivity).startFragment(UserListFragment())
+        binding?.btnUser?.setOnClickListener {
+            (activity as MainActivity).addFragment(UserListFragment())
         }
-        binding?.btnMenu?.setOnClickListener {
-            (activity as MainActivity).startFragment(DepositFragment())
-        }
-        binding?.tvMoney?.setOnClickListener {
-            viewModel.checkDeposits(requireContext())
+        binding?.btnDeposit?.setOnClickListener {
+            (activity as MainActivity).addFragment(DepositFragment())
         }
     }
 }

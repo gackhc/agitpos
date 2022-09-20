@@ -58,6 +58,12 @@ class MainActivity : BaseActivity() {
         ft.replace(binding.container.id, f)
         ft.commit()
     }
+    fun addFragment(f : Fragment) {
+        val ft = supportFragmentManager.beginTransaction()
+        ft.add(binding.container.id, f)
+        ft.addToBackStack(null)
+        ft.commit()
+    }
 
     override fun onResume() {
         super.onResume()

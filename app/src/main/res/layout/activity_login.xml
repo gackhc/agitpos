@@ -52,6 +52,68 @@
            android:imeOptions="actionDone"
            android:minWidth="150dp" />
     </LinearLayout>
+    <TextView
+        android:id="@+id/tv1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:layout_marginTop="10dp"
+        android:visibility="visible"
+        android:text="최초 PIN : 0000"
+        app:layout_constraintTop_toBottomOf="@id/llPassword"
+        app:layout_constraintEnd_toEndOf="@id/llName"/>
+    <TextView
+        android:id="@+id/tv2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:layout_marginTop="50dp"
+        android:visibility="visible"
+        android:textColor="@color/black"
+        android:text = "반드시 위 목록과 일치하는 ※닉네임※ 으로"
+        app:layout_constraintTop_toBottomOf="@id/llPassword"
+        app:layout_constraintEnd_toEndOf="@id/llName"/>
+    <TextView
+        android:id="@+id/tvBankAccount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:visibility="visible"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:text = "카카오뱅크 3333-15-7121421 곽홍석"
+        app:layout_constraintTop_toBottomOf="@id/tv2"
+        app:layout_constraintEnd_toEndOf="@id/llName"/>
+    <TextView
+        android:id="@+id/tv3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:visibility="visible"
+        android:text = "으로 입금해주세요"
+        app:layout_constraintTop_toBottomOf="@id/tvBankAccount"
+        app:layout_constraintEnd_toEndOf="@id/llName"/>
+    <TextView
+        android:id="@+id/tv4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:visibility="visible"
+        android:layout_marginTop="10dp"
+        android:text = "아래 카카오페이도 됩니다(※카카오톡으로 보내시면 안됩니다.)"
+        app:layout_constraintTop_toBottomOf="@id/tv3"
+        app:layout_constraintEnd_toEndOf="@id/llName"/>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/qr"
+        app:layout_constraintTop_toBottomOf="@+id/tv4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+
+        />
     <androidx.recyclerview.widget.RecyclerView
        android:id="@+id/rvNickName"
        android:layout_width="150dp"
@@ -63,64 +125,4 @@
        app:layout_constraintHeight_max="400dp"
        android:visibility="gone"
        tools:ignore="NotSibling" />
-
-
-    <TextView
-       android:id="@+id/tvNick1"
-       android:layout_width="150dp"
-       android:layout_height="wrap_content"
-       android:background="@color/white"
-       android:padding="5dp"
-       android:visibility="gone"
-       app:layout_constraintTop_toBottomOf="@id/llName"
-       app:layout_constraintEnd_toEndOf="@id/llName"
-       />
-    <TextView
-       android:id="@+id/tvNick2"
-       android:layout_width="150dp"
-       android:layout_height="wrap_content"
-       android:background="@color/white"
-       android:padding="5dp"
-       android:visibility="gone"
-       app:layout_constraintTop_toBottomOf="@id/tvNick1"
-       app:layout_constraintEnd_toEndOf="@id/llName"
-       />
-    <TextView
-       android:id="@+id/tvNick3"
-       android:layout_width="150dp"
-       android:layout_height="wrap_content"
-       android:background="@color/white"
-       android:padding="5dp"
-       android:visibility="gone"
-       app:layout_constraintTop_toBottomOf="@id/tvNick2"
-       app:layout_constraintEnd_toEndOf="@id/llName"
-       />
-    <TextView
-       android:id="@+id/tvNick4"
-       android:layout_width="150dp"
-       android:layout_height="wrap_content"
-       android:background="@color/white"
-       android:padding="5dp"
-       android:visibility="gone"
-       app:layout_constraintTop_toBottomOf="@id/tvNick3"
-       app:layout_constraintEnd_toEndOf="@id/llName"
-       />
-    <TextView
-       android:id="@+id/tvNick5"
-       android:layout_width="150dp"
-       android:layout_height="wrap_content"
-       android:background="@color/white"
-       android:padding="5dp"
-       android:visibility="gone"
-       app:layout_constraintTop_toBottomOf="@id/tvNick4"
-       app:layout_constraintEnd_toEndOf="@id/llName"
-       />
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="20dp"
-        app:layout_constraintTop_toBottomOf="@id/llPassword"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
 </androidx.constraintlayout.widget.ConstraintLayout>

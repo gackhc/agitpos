@@ -29,7 +29,7 @@ object FirebaseComm {
     fun addUser(name : String) {
         mAccount?.let { it ->
             val map : Map<String, Any> = UserModel("0000", 0).getMap()
-            mDatabase.child(it).child("users").child(name).setValue(map).addOnSuccessListener {
+            mDatabase.child(it).child("users").child(name.lowercase()).setValue(map).addOnSuccessListener {
                 Log.e(TAG, "add success $name")
                 getUsers()
             }.addOnFailureListener {
@@ -40,7 +40,7 @@ object FirebaseComm {
     fun removeUser(name : String) {
         mAccount?.let { it ->
             val map : Map<String, Any> = UserModel("0000", 0).getMap()
-            mDatabase.child(it).child("users").child(name).removeValue().addOnSuccessListener {
+            mDatabase.child(it).child("users").child(name.lowercase()).removeValue().addOnSuccessListener {
                 Log.e(TAG, "add success $name")
                 getUsers()
             }.addOnFailureListener {
@@ -51,8 +51,12 @@ object FirebaseComm {
     fun getUsers() {
         mAccount?.let { it ->
             mDatabase.child(it).child("users").get().addOnSuccessListener { data ->
-                val value = data.value as Map<String, Map<String, Any>>
-                liveUserList.postValue(value)
+                val value = data.value as Map<String, Map<String, Any>>?
+                if(value == null) {
+                    addUser("*MASTER")
+                } else {
+                    liveUserList.postValue(value)
+                }
                 Log.e(TAG, value.toString())
             }.addOnSuccessListener {
 
@@ -64,7 +68,7 @@ object FirebaseComm {
     fun getDeposits() {
         mAccount?.let { it ->
             mDatabase.child(it).child("deposits").get().addOnSuccessListener { data ->
-                val value = data.value as Map<String, Map<String, Any>>
+                val value = data.value as Map<String, Map<String, Any>>? ?: return@addOnSuccessListener
                 liveDeposits.postValue(value)
                 Log.e(TAG, value.toString())
             }.addOnSuccessListener {
@@ -94,7 +98,7 @@ object FirebaseComm {
     }
     fun changePin(name : String, pin : String) {
         mAccount?.let { it ->
-            mDatabase.child(it).child("users").child(name).child("pin").setValue(pin)
+            mDatabase.child(it).child("users").child(name.lowercase()).child("pin").setValue(pin)
             .addOnSuccessListener {
                 getUsers()
             }.addOnFailureListener {
@@ -104,7 +108,7 @@ object FirebaseComm {
     }
     fun setMoney(name : String, money : Int) {
         mAccount?.let { it ->
-            mDatabase.child(it).child("users").child(name).child("money").setValue(money)
+            mDatabase.child(it).child("users").child(name.lowercase()).child("money").setValue(money)
                 .addOnSuccessListener {
                     getUsers()
                 }.addOnFailureListener {

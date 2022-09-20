@@ -46,10 +46,6 @@ open class DepositService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         mTimer?.cancel()
-        //TODO  여기서 부터 해야함.
-        // 닉네임 확인해서 있으면 데이터 반영하고
-        // 닉네임 없으면 deposit 리스트에 넣기
-        // sms 도착시, 카페 도착시 체크하도록 하는 것 넣기
         observerDeposit = Observer {
             CoroutineScope(Dispatchers.Main).launch {
                 while(!mUserPrepared) {
@@ -67,6 +63,7 @@ open class DepositService : Service() {
                             model.name,
                             Constants.HISTORY_DEPOSIT,
                             model.money,
+                            mapOf(),
                             ""
                         )
                         FirebaseComm.addHistory(historyModel)
