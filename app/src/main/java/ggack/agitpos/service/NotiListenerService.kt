@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Exception
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -45,11 +46,10 @@ import java.time.format.DateTimeFormatter
      }
      override fun onNotificationPosted(sbn: StatusBarNotification?) {
          super.onNotificationPosted(sbn)
+         Log.e("onNotificationPosted", "${sbn?.packageName} : ${sbn?.notification?.extras}")
          if(sbn?.packageName == "com.kakao.talk") {
              val body = sbn?.notification?.extras?.getString("android.text")
              if (body?.contains("코드송금 받기가 완료되었습니다.") == true) {
-                 val datetime = LocalDateTime.now()
-                 val sdf = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
                  val strArray = body.split("\n")
 
                  var nickName : String? = null
@@ -57,16 +57,16 @@ import java.time.format.DateTimeFormatter
                  for(str in strArray) {
                      if(str.contains("받은금액 :")) {
                          money =
-                         str.trim().replace("-받은금액:", "")
+                         str.replace("- 받은금액 : ", "")
                              .replace(",", "")
                              .replace("원", "").toInt()
                      } else if(str.contains("메시지 :")) {
                          nickName =
-                             str.trim().replace("-메시지:", "").lowercase()
+                             str.trim().replace("- 메시지 : ", "").lowercase()
                      }
                  }
-                if(nickName != null && money != null) {
-                    val model = DepositModel(datetime.format(sdf), money, nickName)
+                if(nickName != null && money != null) {`
+                    val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
                     mUserPrepared = false
                     FirebaseComm.getUsers()
                     CoroutineScope(Dispatchers.Main).launch {
@@ -84,7 +84,7 @@ import java.time.format.DateTimeFormatter
                                 Constants.HISTORY_DEPOSIT,
                                 model.money,
                                 mapOf(),
-                                ""
+                                "카카오페이"
                             )
                             FirebaseComm.addHistory(historyModel)
                         } else {
@@ -92,6 +92,48 @@ import java.time.format.DateTimeFormatter
                         }
                     }
                 }
+             }
+         } else if(sbn?.packageName == "com.samsung.android.messaging") {
+             val body = sbn?.notification?.extras?.getString("android.text")?:""
+             if (body.contains("[카카오뱅크]") && body.contains("입금") && body.contains("(1421)")) {
+                 val strArray = body.split("\n")
+
+                 var nickName : String? = null
+                 var money : Int? = null
+
+                 nickName = strArray[strArray.lastIndex - 1].trim().lowercase()
+                 if(strArray[strArray.lastIndex - 2].contains("입금")) {
+                     money = strArray[strArray.lastIndex - 2].trim().replace("입금 ", "")
+                         .replace("원", "")
+                         .replace(",", "").toInt()
+                 }
+                 if(nickName != null && money != null) {
+                     val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
+                     mUserPrepared = false
+                     FirebaseComm.getUsers()
+                     CoroutineScope(Dispatchers.Main).launch {
+                         while (!mUserPrepared) {
+                             delay(10)
+                         }
+                         if (mUserList?.contains(model.name) == true) {
+                             val user = FromMap.toUserModel(mUserList!![model.name]!!)
+                             val money = user.money + model.money
+                             FirebaseComm.setMoney(model.name, money)
+
+                             val historyModel = HistoryModel(
+                                 System.currentTimeMillis(),
+                                 model.name,
+                                 Constants.HISTORY_DEPOSIT,
+                                 model.money,
+                                 mapOf(),
+                                 "카뱅"
+                             )
+                             FirebaseComm.addHistory(historyModel)
+                         } else {
+                             FirebaseComm.addDepositItem(model)
+                         }
+                     }
+                 }
              }
          }
      }

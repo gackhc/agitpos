@@ -89,7 +89,7 @@ object FirebaseComm {
     }
     fun addDepositItem(model : DepositModel) {
         mAccount?.let { it ->
-            mDatabase.child(it).child("deposits").child(model.date).setValue(model.getMap()).addOnSuccessListener {
+            mDatabase.child(it).child("deposits").child(model.date.toString()).setValue(model.getMap()).addOnSuccessListener {
                 getDeposits()
             }.addOnFailureListener {
                 Log.e(TAG, "Error removeDepositItem", it)

@@ -28,6 +28,7 @@ import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.SimpleDialog
 import java.text.SimpleDateFormat
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -112,18 +113,31 @@ class MainClientFragment : Fragment() {
         }
     }
     fun initItemAdapter() {
-        val listItems = listOf(
-            ItemModel("일일 이용권", 6000, 1, null),
-            ItemModel("월간 이용권", 40000, 1, null),
-            ItemModel("캔음료", 1200, 1, null),
-            ItemModel("라면", 2000, 1, null),
-            ItemModel("고급라면", 2500, 1, null),
-            ItemModel("계란", 500, 1, null),
-            ItemModel("아메리카노", 1000, 1, null),
-            ItemModel("에이드류", 1000, 1, null),
-            ItemModel("라떼류", 2000, 1, null),
-            ItemModel("밀크티", 2000, 1, null)
-        )
+        val listItems = if(LocalDateTime.now().dayOfMonth < 16) {
+            listOf(
+                ItemModel("일일 이용권", 6000, 1, null),
+                ItemModel("월간 이용권", 40000, 1, null),
+                ItemModel("캔음료", 1300, 1, null),
+                ItemModel("라면", 2000, 1, null),
+                ItemModel("고급라면", 2500, 1, null),
+                ItemModel("계란", 500, 1, null),
+                ItemModel("아메리카노", 1000, 1, null),
+                ItemModel("에이드류", 1000, 1, null),
+                ItemModel("라떼류", 2000, 1, null),
+                ItemModel("밀크티", 2000, 1, null)
+            )
+        } else {
+            listOf(
+                ItemModel("일일 이용권", 6000, 1, null),
+                ItemModel("캔음료", 1300, 1, null),
+                ItemModel("라면", 2000, 1, null),
+                ItemModel("고급라면", 2500, 1, null),
+                ItemModel("계란", 500, 1, null),
+                ItemModel("아메리카노", 1000, 1, null),
+                ItemModel("에이드류", 1000, 1, null),
+                ItemModel("라떼류", 2000, 1, null),
+                ItemModel("밀크티", 2000, 1, null))
+        }
         binding?.rvItems?.layoutManager = GridLayoutManager(requireContext(), 4)
         binding?.rvItems?.adapter = ItemAdapter(listItems, object : ListListener {
             override fun onClick(key: String, item: Any?) {

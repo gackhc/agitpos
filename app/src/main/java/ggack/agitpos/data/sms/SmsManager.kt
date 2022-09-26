@@ -55,8 +55,6 @@ object SmsManager {
                     val date: Long = cursor.getLong(dateidx)
                     if(date < lastCheck)
                         break
-                    val datetime = Utils.getDate(date)
-                    val sdf = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
                     val body: String = cursor.getString(bodyidx)
                     val strArray = body.split("\n")
                     try{
@@ -66,7 +64,7 @@ object SmsManager {
                                .replace("원", "")
                                .replace(",", "").toInt()
                            Log.e("debug", "$nickName : $money")
-                           list.add(DepositModel(datetime.format(sdf), money, nickName))
+                           list.add(DepositModel(date, money, nickName))
                         }
                     } catch (e : Exception) {
                         e.printStackTrace()

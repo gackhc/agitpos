@@ -101,12 +101,13 @@ class DepositFragment : Fragment() {
     }
     fun addAll(originName : String, name : String) {
         CoroutineScope(Dispatchers.Main).launch {
-            while(!mUserPrepared) {
-                delay(10)
-            }
             val keys = mutableListOf<String>()
             keys.addAll(adapter?.keys?: listOf())
             keys.forEach {date ->
+                while(!mUserPrepared) {
+                    delay(10)
+                }
+                mUserPrepared = false
                 mapDeposit[date]?.let{map->
                     val m = FromMap.toDepositModel(map)
                     if(m.name == originName){
@@ -119,11 +120,10 @@ class DepositFragment : Fragment() {
         }
     }
     fun setData(key : String, name : String, model : DepositModel) {
-        val dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
         val user = FromMap.toUserModel(mMapName[name]!!)
         FirebaseComm.setMoney(name, model.money + user.money)
         FirebaseComm.addHistory(HistoryModel(
-            Utils.getDateLong(LocalDateTime.parse(model.date, dtf)),
+            model.date,
             name,
             Constants.HISTORY_DEPOSIT,
             model.money,

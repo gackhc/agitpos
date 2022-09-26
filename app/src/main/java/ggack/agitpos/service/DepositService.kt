@@ -36,7 +36,7 @@ import java.time.ZoneOffset
 
 open class DepositService : Service() {
     private var mTimer : Timer? = null
-    private var observerDeposit : Observer<Any?>? = null
+    //private var observerDeposit : Observer<Any?>? = null
     private var observerUser : Observer<Any?>? = null
     private var mUserPrepared = false
     private var mUserList : Map<String, Map<String, Any>>? = null
@@ -46,55 +46,55 @@ open class DepositService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         mTimer?.cancel()
-        observerDeposit = Observer {
-            CoroutineScope(Dispatchers.Main).launch {
-                while(!mUserPrepared) {
-                    delay(10)
-                }
-                val list = it as List<DepositModel>
-                list.forEach {model ->
-                    if(mUserList?.contains(model.name) == true) {
-                        val user = FromMap.toUserModel(mUserList!![model.name]!!)
-                        val money = user.money + model.money
-                        FirebaseComm.setMoney(model.name, money)
-
-                        val historyModel = HistoryModel(
-                            System.currentTimeMillis(),
-                            model.name,
-                            Constants.HISTORY_DEPOSIT,
-                            model.money,
-                            mapOf(),
-                            ""
-                        )
-                        FirebaseComm.addHistory(historyModel)
-                    } else {
-                        FirebaseComm.addDepositItem(model)
-                    }
-                }
-
-            }
-        }
-        observerUser = Observer {
-            mUserList = it as Map<String, Map<String, Any>>?
-            mUserPrepared = true
-        }
-        observerDeposit?.let {
-            SmsManager.liveDepositArray.observeForever(it)
-        }
-        observerUser?.let {
-            FirebaseComm.liveUserList.observeForever(it)
-        }
-
-        mTimer = timer(initialDelay = 0, period = 60000)  {
-            Handler(Looper.getMainLooper()).post {
-                getUserList()
-                SmsManager.startCheck(this@DepositService)
-            }
-        }
-
-        val filter = IntentFilter()
-        filter.addAction("android.provider.Telephony.SMS_RECEIVED")
-        registerReceiver(smsReceiver, filter)
+//        observerDeposit = Observer {
+//            CoroutineScope(Dispatchers.Main).launch {
+//                val list = it as List<DepositModel>
+//                list.forEach {model ->
+//                    if(mUserList?.contains(model.name) == true) {
+//                        while(!mUserPrepared) {
+//                            delay(10)
+//                        }
+//                        val user = FromMap.toUserModel(mUserList!![model.name]!!)
+//                        val money = user.money + model.money
+//                        mUserPrepared = false
+//                        FirebaseComm.setMoney(model.name, money)
+//                        val historyModel = HistoryModel(
+//                            System.currentTimeMillis(),
+//                            model.name,
+//                            Constants.HISTORY_DEPOSIT,
+//                            model.money,
+//                            mapOf(),
+//                            ""
+//                        )
+//                        FirebaseComm.addHistory(historyModel)
+//                    } else {
+//                        FirebaseComm.addDepositItem(model)
+//                    }
+//                }
+//
+//            }
+//        }
+//        observerUser = Observer {
+//            mUserList = it as Map<String, Map<String, Any>>?
+//            mUserPrepared = true
+//        }
+//        observerDeposit?.let {
+//            SmsManager.liveDepositArray.observeForever(it)
+//        }
+//        observerUser?.let {
+//            FirebaseComm.liveUserList.observeForever(it)
+//        }
+//
+//        mTimer = timer(initialDelay = 0, period = 60000)  {
+//            Handler(Looper.getMainLooper()).post {
+//                getUserList()
+//                SmsManager.startCheck(this@DepositService)
+//            }
+//        }
+//
+//        val filter = IntentFilter()
+//        filter.addAction("android.provider.Telephony.SMS_RECEIVED")
+//        registerReceiver(smsReceiver, filter)
 
         startNotiService()
         return START_STICKY
@@ -136,18 +136,18 @@ open class DepositService : Service() {
     }
 
     override fun onDestroy() {
-        observerDeposit?.let {
-            SmsManager.liveDepositArray.removeObserver(it)
-        }
-        observerUser?.let {
-            FirebaseComm.liveUserList.removeObserver(it)
-        }
-        mTimer?.cancel()
-        try {
-            unregisterReceiver(smsReceiver)
-        } catch (e : Exception) {
-            e.printStackTrace()
-        }
+//        observerDeposit?.let {
+//            SmsManager.liveDepositArray.removeObserver(it)
+//        }
+//        observerUser?.let {
+//            FirebaseComm.liveUserList.removeObserver(it)
+//        }
+//        mTimer?.cancel()
+//        try {
+//            unregisterReceiver(smsReceiver)
+//        } catch (e : Exception) {
+//            e.printStackTrace()
+//        }
         setAlarmTimer()
         super.onDestroy()
     }
