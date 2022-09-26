@@ -1,8 +1,10 @@
 package ggack.agitpos.ui.view.activity
 
 import android.Manifest
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
@@ -21,6 +23,12 @@ import ggack.agitpos.ui.view.fragment.MainMasterFragment
 import ggack.agitpos.ui.view.fragment.UserListFragment
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Permissions
+import ggack.agitpos.utils.SimpleDialog
+import ggack.agitpos.utils.Utils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
     private val viewModel : MainViewModel by viewModels()
@@ -65,7 +73,23 @@ class MainActivity : BaseActivity() {
         ft.commit()
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onPause() {
+        super.onPause()
+        if(Utils.isAppIsInBackground(this)) {
+            Log.e("debug", "onMoveToBackground")
+            val coroutine = CoroutineScope(Dispatchers.Main).launch {
+                delay(5000)
+                baseContext.startActivity(Intent(baseContext, LoginActivity::class.java))
+            }
+            val dlg = SimpleDialog(baseContext, SimpleDialog.TYPE_ONE_BUTTON) {
+                when (it) {
+                    RESULT_OK -> {
+                        coroutine.cancel()
+                    }
+                }
+            }
+            dlg.setText("앱 창을 다시 실행합니다. 재실행을 원치않는다면 5초안에 확인을 눌러주세요")
+            dlg.show()
+        }
     }
 }

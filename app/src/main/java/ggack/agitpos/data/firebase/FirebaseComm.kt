@@ -2,13 +2,14 @@ package ggack.agitpos.data.firebase
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import ggack.agitpos.data.model.DepositModel
+import ggack.agitpos.data.model.FromMap
 import ggack.agitpos.data.model.HistoryModel
 import ggack.agitpos.data.model.UserModel
 import ggack.agitpos.utils.Utils
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -16,19 +17,20 @@ object FirebaseComm {
     private val TAG = "Firebase"
     private lateinit var mDatabase : DatabaseReference
     private var mAccount : String? = null
-
     val liveUserList = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>?>(null)
+    val liveHistory = MutableLiveData<MutableMap<String, HistoryModel>?>(null)
     fun init() {
         mDatabase = FirebaseDatabase.getInstance().reference
     }
 
     fun setAccount(id : String) {
         mAccount = id
+        setHistoryListener()
     }
     fun addUser(name : String) {
         mAccount?.let { it ->
-            val map : Map<String, Any> = UserModel("0000", 0).getMap()
+            val map : Map<String, Any?> = UserModel("0000", 0).getMap()
             mDatabase.child(it).child("users").child(name.lowercase()).setValue(map).addOnSuccessListener {
                 Log.e(TAG, "add success $name")
                 getUsers()
@@ -39,7 +41,7 @@ object FirebaseComm {
     }
     fun removeUser(name : String) {
         mAccount?.let { it ->
-            val map : Map<String, Any> = UserModel("0000", 0).getMap()
+            val map : Map<String, Any?> = UserModel("0000", 0).getMap()
             mDatabase.child(it).child("users").child(name.lowercase()).removeValue().addOnSuccessListener {
                 Log.e(TAG, "add success $name")
                 getUsers()
@@ -121,6 +123,35 @@ object FirebaseComm {
         val datetime = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("ddHHmmssSSS"))
         mAccount?.let { it ->
             mDatabase.child(it).child("history").child(month).child(datetime).setValue(historyModel.getMap())
+        }
+    }
+
+
+    private val historyListener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val children = snapshot.children
+            val map : MutableMap<String, HistoryModel> = hashMapOf()
+            children.forEach {
+                it.key?.let {key ->
+                    map[key] = FromMap.toHistoryModel(it.value as Map<String, Any?>)
+                }
+            }
+            liveHistory.postValue(map)
+            Log.e("debug", map.toString())
+        }
+        override fun onCancelled(error: DatabaseError) {
+        }
+    }
+    private var prevListenerMonth = ""
+    fun setHistoryListener() {
+        mAccount?.let { it ->
+            val now = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"))
+            if(now != prevListenerMonth) {
+                prevListenerMonth = now
+                mDatabase.child(it).child("history")
+                    .child(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
+                    .addValueEventListener(historyListener)
+            }
         }
     }
 }

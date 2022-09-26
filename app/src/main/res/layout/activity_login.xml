@@ -18,6 +18,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="20sp"
             android:text="닉네임 : "
             />
         <EditText
@@ -25,6 +26,7 @@
             android:layout_width="150dp"
            android:inputType="text"
             android:lines="1"
+            android:textSize="20sp"
            android:imeOptions="actionNext"
            android:nextFocusForward="@id/etPin"
             android:layout_height="wrap_content"/>
@@ -39,6 +41,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="20sp"
             android:text="PIN : "
             />
 
@@ -59,7 +62,9 @@
         android:background="@color/white"
         android:layout_marginTop="10dp"
         android:visibility="visible"
+        android:textSize="15sp"
         android:text="최초 PIN : 0000"
+        android:textColor="@color/red"
         app:layout_constraintTop_toBottomOf="@id/llPassword"
         app:layout_constraintEnd_toEndOf="@id/llName"/>
     <TextView
@@ -79,7 +84,7 @@
         android:layout_height="wrap_content"
         android:background="@color/white"
         android:visibility="visible"
-        android:textSize="20sp"
+        android:textSize="22sp"
         android:textColor="@color/black"
         android:text = "카카오뱅크 3333-15-7121421 곽홍석"
         app:layout_constraintTop_toBottomOf="@id/tv2"
@@ -111,18 +116,34 @@
         app:layout_constraintTop_toBottomOf="@+id/tv4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btnChange"
 
         />
     <androidx.recyclerview.widget.RecyclerView
-       android:id="@+id/rvNickName"
-       android:layout_width="150dp"
-       android:layout_height="wrap_content"
-       app:layout_constraintTop_toBottomOf="@id/llName"
-       app:layout_constraintEnd_toEndOf="@id/llName"
-       android:background="@color/gray"
-       app:layout_constraintHeight_min="100dp"
-       app:layout_constraintHeight_max="400dp"
-       android:visibility="gone"
-       tools:ignore="NotSibling" />
+        android:id="@+id/rvHistory"
+        android:background="@color/white"
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/tv1"
+        app:layout_constraintBottom_toTopOf="@id/btnChange"
+        />
+    <Button
+        android:id="@+id/btnChange"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="입금 방법 보기"
+        />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvNickName"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/llName"
+        app:layout_constraintEnd_toEndOf="@id/llName"
+        android:background="@color/gray"
+        app:layout_constraintHeight_min="100dp"
+        app:layout_constraintHeight_max="400dp"
+        android:visibility="gone"
+        tools:ignore="NotSibling" />
 </androidx.constraintlayout.widget.ConstraintLayout>

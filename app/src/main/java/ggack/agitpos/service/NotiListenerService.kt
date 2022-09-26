@@ -65,7 +65,7 @@ import java.time.format.DateTimeFormatter
                              str.trim().replace("- 메시지 : ", "").lowercase()
                      }
                  }
-                if(nickName != null && money != null) {`
+                if(nickName != null && money != null) {
                     val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
                     mUserPrepared = false
                     FirebaseComm.getUsers()

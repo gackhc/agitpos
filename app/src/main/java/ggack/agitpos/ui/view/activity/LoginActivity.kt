@@ -42,16 +42,27 @@ import androidx.core.app.ActivityCompat
 
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Handler
 
 import androidx.core.content.ContextCompat
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.text.set
+import androidx.core.view.isVisible
+import ggack.agitpos.data.model.HistoryModel
+import ggack.agitpos.service.RestartActivityService
+import ggack.agitpos.ui.adapter.HistoryAdapter
+import ggack.agitpos.ui.base.BaseActivity
 import ggack.agitpos.utils.SimpleDialog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : BaseActivity() {
     private val viewModel : LoginViewModel by viewModels()
     private lateinit var binding : ActivityLoginBinding
 
@@ -59,10 +70,12 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var mAuth: FirebaseAuth
     private var mTimerRefresh : Timer? = null
     private var mAdapter : UserNameAdapter? = null
+    private var mHistoryAdapter : HistoryAdapter? = null
     private var mMapName : Map<String, Map<String, Any>> = HashMap()
+    private var mListHistory = mutableListOf<HistoryModel>()
+    private lateinit var mHandler : Handler
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         viewModel.init()
@@ -74,9 +87,22 @@ class LoginActivity : AppCompatActivity() {
         mGoogleClient = GoogleSignIn.getClient(this, gso)
         FirebaseComm.init()
         FirebaseComm.setAccount("gackhc@gmailcom")
+        initHandler()
         initAdapter()
         initObserver()
         initView()
+    }
+    fun initHandler() {
+        mHandler = Handler(mainLooper) {
+            when(it.what) {
+                0 -> { //기록 보기
+                    binding.rvHistory.visibility = View.VISIBLE
+                    binding.btnChange.text = "입금 방법 보기"
+                }
+            }
+            true
+        }
+
     }
     fun initPowerMode() {
         val pm = applicationContext.getSystemService(POWER_SERVICE) as PowerManager
@@ -89,6 +115,20 @@ class LoginActivity : AppCompatActivity() {
         }
         startForegroundService(Intent(this, RestartService::class.java))
     }
+
+    override fun onBackPressed() {
+        val dlg = SimpleDialog(this, SimpleDialog.TYPE_TWO_BUTTON) {
+            when(it) {
+                RESULT_OK -> {
+                    isDestroying = true
+                    finishAffinity()
+                }
+            }
+        }
+        dlg.setText("앱을 종료하시겠습니까?")
+        dlg.show()
+    }
+
     override fun onResume() {
         super.onResume()
 
@@ -97,6 +137,14 @@ class LoginActivity : AppCompatActivity() {
             ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) + ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, permissions, 1)
+            return
+        } else if(!Settings.canDrawOverlays(this)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName")
+            )
+            startActivity(intent)
+            Toast.makeText(this, "다른 앱 위에 표시 권한을 설정해주세요", Toast.LENGTH_LONG).show()
             return
         } else {
             val sets = NotificationManagerCompat.getEnabledListenerPackages(this)
@@ -116,6 +164,7 @@ class LoginActivity : AppCompatActivity() {
         }
         binding.etNickname.setText("")
         binding.etPin.setText("")
+        FirebaseComm.setHistoryListener()
     }
     override fun onPause() {
         super.onPause()
@@ -127,7 +176,7 @@ class LoginActivity : AppCompatActivity() {
         startActivityForResult(signInIntent, 1000)
     }
 
-
+    val historyKeys = mutableListOf<String>()
     private fun initObserver() {
         viewModel.liveUserData.observe(this) {
             it?.let {
@@ -135,6 +184,18 @@ class LoginActivity : AppCompatActivity() {
                 mAdapter?.map = it
                 mAdapter?.keys = it.keys.toList().sorted()
                 mAdapter?.notifyDataSetChanged()
+            }
+        }
+        FirebaseComm.liveHistory.observe(this) {
+            val keys = it?.keys?.sorted()
+            keys?.forEach { key ->
+                if(!historyKeys.contains(key)) {
+                    it[key]?.let { model ->
+                        mListHistory.add(model)
+                        mHistoryAdapter?.notifyItemInserted(mListHistory.lastIndex)
+                        binding.rvHistory.scrollToPosition(mListHistory.lastIndex)
+                    }
+                }
             }
         }
     }
@@ -223,14 +284,26 @@ class LoginActivity : AppCompatActivity() {
                             binding.etPin.setText("")
 
                     } ?: run {
+                        binding.etPin.setText("")
                         Toast.makeText(this@LoginActivity, "닉네임을 선택해주세요", Toast.LENGTH_SHORT).show()
                         binding.etNickname.requestFocus()
                     }
                 }
             }
         })
-
+        binding.btnChange.setOnClickListener {
+            mHandler.removeMessages(0)
+            if(binding.rvHistory.isVisible) {
+                binding.rvHistory.visibility = View.GONE
+                binding.btnChange.text = "기록 보기"
+            } else {
+                binding.rvHistory.visibility = View.VISIBLE
+                binding.btnChange.text = "입금 방법 보기"
+                mHandler.sendEmptyMessageDelayed(0, 60000)
+            }
+        }
     }
+
 
     private fun initAdapter() {
         binding.rvNickName.layoutManager = LinearLayoutManager(this)
@@ -243,5 +316,10 @@ class LoginActivity : AppCompatActivity() {
         })
 
         binding.rvNickName.adapter = mAdapter
+
+
+        binding.rvHistory.layoutManager = LinearLayoutManager(this)
+        mHistoryAdapter = HistoryAdapter(mListHistory)
+        binding.rvHistory.adapter = mHistoryAdapter
     }
 }

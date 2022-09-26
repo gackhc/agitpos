@@ -3,6 +3,8 @@ package ggack.agitpos.utils
 import android.R
 import android.app.Activity
 import android.app.ActivityManager
+import android.app.ActivityManager.RunningAppProcessInfo
+import android.app.ActivityManager.RunningTaskInfo
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.SharedPreferences
@@ -13,6 +15,12 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import android.content.ComponentName
+
+import android.os.Build
+
+
+
 
 
 val isDebug = true
@@ -94,6 +102,31 @@ object Utils {
         }
         return false
     }
+
+    fun isAppIsInBackground(context: Context): Boolean {
+        var isInBackground = true
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT_WATCH) {
+            val runningProcesses = am.runningAppProcesses
+            for (processInfo in runningProcesses) {
+                if (processInfo.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                    for (activeProcess in processInfo.pkgList) {
+                        if (activeProcess == context.packageName) {
+                            isInBackground = false
+                        }
+                    }
+                }
+            }
+        } else {
+            val taskInfo = am.getRunningTasks(1)
+            val componentInfo = taskInfo[0].topActivity
+            if (componentInfo!!.packageName == context.packageName) {
+                isInBackground = false
+            }
+        }
+        return isInBackground
+    }
+
 
     private val mHandler = Handler() {
         when(it.what) {
