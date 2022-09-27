@@ -89,11 +89,25 @@ class DepositFragment : Fragment() {
                         Activity.RESULT_OK -> {
                             mUserPrepared = false
                             FirebaseComm.addUser(model.name)
-                            addAll(model.name, model.name)
                         }
                     }
                 }
                 dlg.setText("사용자를 추가하겠습니까?")
+                dlg.show()
+            }
+
+            override fun onRemove(key: String, item: Any?) {
+                super.onRemove(key, item)
+                val model = item as DepositModel
+                val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
+                    when (it) {
+                        Activity.RESULT_OK -> {
+                            mUserPrepared = false
+                            FirebaseComm.removeDepositItem(model.date.toString())
+                        }
+                    }
+                }
+                dlg.setText("삭제 하시겠습니까?")
                 dlg.show()
             }
         })

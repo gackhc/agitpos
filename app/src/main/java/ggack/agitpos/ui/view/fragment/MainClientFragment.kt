@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.HistoryModel
 import ggack.agitpos.data.model.ItemModel
@@ -28,6 +29,7 @@ import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.SimpleDialog
 import java.text.SimpleDateFormat
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -42,6 +44,31 @@ class MainClientFragment : Fragment() {
     private var mTime = LocalTime.of(0,1,0)
     private var mUser : UserModel? = null
     private var mTotal = 0
+    private val mListItems = if(LocalDateTime.now().dayOfMonth < 16) {
+        mutableListOf(
+            ItemModel("일일 이용권", 6000, 1, null),
+            ItemModel("월간 이용권", 40000, 1, null),
+            ItemModel("캔음료", 1300, 1, null),
+            ItemModel("라면", 2000, 1, null),
+            ItemModel("고급라면", 2500, 1, null),
+            ItemModel("계란", 500, 1, null),
+            ItemModel("아메리카노", 1000, 1, null),
+            ItemModel("에이드류", 1000, 1, null),
+            ItemModel("라떼류", 2000, 1, null),
+            ItemModel("밀크티", 2000, 1, null)
+        )
+    } else {
+        mutableListOf(
+            ItemModel("일일 이용권", 6000, 1, null),
+            ItemModel("캔음료", 1300, 1, null),
+            ItemModel("라면", 2000, 1, null),
+            ItemModel("고급라면", 2500, 1, null),
+            ItemModel("계란", 500, 1, null),
+            ItemModel("아메리카노", 1000, 1, null),
+            ItemModel("에이드류", 1000, 1, null),
+            ItemModel("라떼류", 2000, 1, null),
+            ItemModel("밀크티", 2000, 1, null))
+    }
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMainClientBinding.inflate(inflater, container, false)
         return binding?.root
@@ -58,8 +85,8 @@ class MainClientFragment : Fragment() {
 //        binding?.tvName?.setOnClickListener {
 //            (activity as MainActivity).startFragment(UserListFragment())
 //        }
-        initObserver()
         initItemAdapter()
+        initObserver()
         initPaymentAdapter()
         initButtons()
     }
@@ -79,6 +106,9 @@ class MainClientFragment : Fragment() {
                             mListPayment.forEach {model->
                                 map[model.name] = model.getMap()
                             }
+                            if(map.keys.contains("월간 이용권"))
+                                FirebaseComm.setMembership(viewModel.userName,
+                                    LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
                             FirebaseComm.setMoney(viewModel.userName, user.money - mTotal)
                             FirebaseComm.addHistory(HistoryModel(
                                 Instant.now().toEpochMilli(),
@@ -107,39 +137,28 @@ class MainClientFragment : Fragment() {
         viewModel.liveCurrentUser.observe(viewLifecycleOwner) {user ->
             user?.let {
                 mUser = it
-                binding?.tvName?.text = viewModel.userName
+                if(mUser?.member == LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"))){
+                    binding?.tvName?.text = "${viewModel.userName} (월회원)"
+                    binding?.tvName?.setTextColor(requireContext().getColor(R.color.red))
+                    var n = -1
+                    for((i, item) in mListItems.withIndex()) {
+                        if (item.name == "월간 회원권")
+                            n = i
+                    }
+                    if(n >= 0)
+                        mListItems.removeAt(n)
+                } else {
+                    binding?.tvName?.text = viewModel.userName
+                    binding?.tvName?.setTextColor(requireContext().getColor(R.color.black))
+                }
                 binding?.tvPoint?.text = "${user.money} pt"
             }
         }
     }
     fun initItemAdapter() {
-        val listItems = if(LocalDateTime.now().dayOfMonth < 16) {
-            listOf(
-                ItemModel("일일 이용권", 6000, 1, null),
-                ItemModel("월간 이용권", 40000, 1, null),
-                ItemModel("캔음료", 1300, 1, null),
-                ItemModel("라면", 2000, 1, null),
-                ItemModel("고급라면", 2500, 1, null),
-                ItemModel("계란", 500, 1, null),
-                ItemModel("아메리카노", 1000, 1, null),
-                ItemModel("에이드류", 1000, 1, null),
-                ItemModel("라떼류", 2000, 1, null),
-                ItemModel("밀크티", 2000, 1, null)
-            )
-        } else {
-            listOf(
-                ItemModel("일일 이용권", 6000, 1, null),
-                ItemModel("캔음료", 1300, 1, null),
-                ItemModel("라면", 2000, 1, null),
-                ItemModel("고급라면", 2500, 1, null),
-                ItemModel("계란", 500, 1, null),
-                ItemModel("아메리카노", 1000, 1, null),
-                ItemModel("에이드류", 1000, 1, null),
-                ItemModel("라떼류", 2000, 1, null),
-                ItemModel("밀크티", 2000, 1, null))
-        }
+
         binding?.rvItems?.layoutManager = GridLayoutManager(requireContext(), 4)
-        binding?.rvItems?.adapter = ItemAdapter(listItems, object : ListListener {
+        binding?.rvItems?.adapter = ItemAdapter(mListItems, object : ListListener {
             override fun onClick(key: String, item: Any?) {
                 super.onClick(key, item)
                 val position = mListPayment.has(key)

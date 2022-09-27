@@ -20,6 +20,7 @@ object FirebaseComm {
     val liveUserList = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     val liveHistory = MutableLiveData<MutableMap<String, HistoryModel>?>(null)
+    val liveHistoryByName = MutableLiveData<MutableMap<String, MutableList<HistoryModel>>>(null)
     fun init() {
         mDatabase = FirebaseDatabase.getInstance().reference
     }
@@ -70,11 +71,12 @@ object FirebaseComm {
     fun getDeposits() {
         mAccount?.let { it ->
             mDatabase.child(it).child("deposits").get().addOnSuccessListener { data ->
-                val value = data.value as Map<String, Map<String, Any>>? ?: return@addOnSuccessListener
+                val value = data.value as Map<String, Map<String, Any>>? ?: run {
+                    liveDeposits.postValue(mapOf())
+                    return@addOnSuccessListener
+                }
                 liveDeposits.postValue(value)
                 Log.e(TAG, value.toString())
-            }.addOnSuccessListener {
-
             }.addOnFailureListener {
                 Log.e(TAG, "Error getDeposits", it)
             }
@@ -118,6 +120,16 @@ object FirebaseComm {
                 }
         }
     }
+    fun setMembership(name : String, month : String) {
+        mAccount?.let { it ->
+            mDatabase.child(it).child("users").child(name.lowercase()).child("member").setValue(month)
+                .addOnSuccessListener {
+                    getUsers()
+                }.addOnFailureListener {
+                    Log.e(TAG, "Error changePin", it)
+                }
+        }
+    }
     fun addHistory(historyModel : HistoryModel) {
         val month = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("yyyyMM"))
         val datetime = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("ddHHmmssSSS"))
@@ -129,13 +141,20 @@ object FirebaseComm {
 
     private val historyListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
-            val children = snapshot.children
+            val children = snapshot.children.sortedBy { it.key }
             val map : MutableMap<String, HistoryModel> = hashMapOf()
+            val mapName : MutableMap<String, MutableList<HistoryModel>> = hashMapOf()
             children.forEach {
                 it.key?.let {key ->
-                    map[key] = FromMap.toHistoryModel(it.value as Map<String, Any?>)
+                    FromMap.toHistoryModel(it.value as Map<String, Any?>).let { model ->
+                        map[key] = model
+                        if (mapName[key] == null)
+                            mapName[key] = mutableListOf()
+                        mapName[key]?.add(model)
+                    }
                 }
             }
+            liveHistoryByName.postValue(mapName)
             liveHistory.postValue(map)
             Log.e("debug", map.toString())
         }

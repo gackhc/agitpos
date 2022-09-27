@@ -11,7 +11,7 @@ import ggack.agitpos.databinding.ItemItemsBinding
 import ggack.agitpos.databinding.ItemUserListBinding
 import ggack.agitpos.listener.ListListener
 
-class ItemAdapter(var list : List<ItemModel>, val listener : ListListener) : RecyclerView.Adapter<ItemAdapter.MyViewHolder>(){
+class ItemAdapter(var list : MutableList<ItemModel>, val listener : ListListener) : RecyclerView.Adapter<ItemAdapter.MyViewHolder>(){
     inner class MyViewHolder(var b : ItemItemsBinding): RecyclerView.ViewHolder(b.root) {
         fun bind(item : ItemModel) {
             b.tvName.text = item.name

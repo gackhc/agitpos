@@ -12,6 +12,7 @@
     <TextView
         android:id="@+id/tvDate"
         android:layout_weight="1"
+        android:textSize="10sp"
         android:text="name"
         android:gravity="center_vertical"
         android:layout_marginHorizontal="5dp"
@@ -21,6 +22,7 @@
         android:id="@+id/tvMoney"
         android:layout_weight="1"
         android:text="name"
+        android:textSize="10sp"
         android:gravity="center_vertical"
         android:layout_marginHorizontal="5dp"
         android:layout_width="match_parent"
@@ -29,6 +31,7 @@
         android:id="@+id/tvName"
         android:layout_weight="1"
         android:text="name"
+        android:textSize="10sp"
         android:gravity="center_vertical"
         android:layout_marginHorizontal="5dp"
         android:layout_width="match_parent"

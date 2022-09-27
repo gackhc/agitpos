@@ -17,6 +17,8 @@ import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.UserAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.SimpleEditDialog
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class UserListFragment : Fragment() {
     private var binding : FragmentUserListBinding? = null
@@ -56,10 +58,10 @@ class UserListFragment : Fragment() {
 
     fun initAdapter() {
         binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
-        adapter = UserAdapter(mapUserList, object : ListListener {
+        adapter = UserAdapter(requireContext(), mapUserList, object : ListListener {
             override fun onRemove(key: String, item: Any?) {
                 super.onRemove(key, item)
-                val dlg = AlertDialog.Builder(requireContext())
+                AlertDialog.Builder(requireContext())
                     .setMessage("[$key] 를 삭제합니까?")
                     .setPositiveButton("네") { _, _ ->
                         viewModel.removeUser(key)
@@ -75,6 +77,11 @@ class UserListFragment : Fragment() {
 
             override fun onRecord(key: String, item: Any?) {
                 super.onRecord(key, item)
+            }
+
+            override fun onMember(key: String, item: Any?, b: Boolean) {
+                super.onMember(key, item, b)
+                FirebaseComm.setMembership(key, if(b) LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")) else "")
             }
         })
         binding?.recyclerView?.adapter = adapter

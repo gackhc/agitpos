@@ -32,6 +32,9 @@ class DepositAdapter(var map : Map<String, Map<String, Any>>, val listener : Lis
             b.btnAdd.setOnClickListener {
                 listener.onADD(date, item)
             }
+            b.btnDelete.setOnClickListener {
+                listener.onRemove(date, item)
+            }
         }
     }
 

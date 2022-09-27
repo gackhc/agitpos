@@ -10,6 +10,7 @@
         android:id="@+id/tvName"
         android:layout_weight="1"
         android:text="name"
+        android:textColor="@color/black"
         android:gravity="center_vertical"
         android:layout_marginHorizontal="5dp"
         android:layout_width="match_parent"
@@ -23,12 +24,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
     <Button
-        android:id="@+id/btnMoney"
+        android:id="@+id/btnMember"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:padding="0dp"
         android:textSize="10sp"
         android:layout_marginHorizontal="5dp"
+        android:text="월간회원"
+        />
+    <Button
+        android:id="@+id/btnMoney"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:padding="0dp"
+        android:textSize="10sp"
+        android:layout_marginEnd="5dp"
         android:text="금액수정"
         />
     <Button
