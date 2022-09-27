@@ -258,9 +258,22 @@ class LoginActivity : BaseActivity() {
         binding.etNickname.setOnClickListener {
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(binding.etNickname,0)
+            binding.etNickname.setText("")
             binding.rvNickName.visibility = View.VISIBLE
         }
-
+        binding.etNickname.setOnFocusChangeListener { v, hasFocus ->
+            if(hasFocus) {
+                binding.etNickname.setText("")
+                binding.rvNickName.visibility = View.VISIBLE
+            } else {
+                binding.rvNickName.visibility = View.GONE
+            }
+        }
+        binding.rvHistory.setOnFocusChangeListener { v, hasFocus ->
+            if(hasFocus) {
+                binding.rvNickName.visibility = View.GONE
+            }
+        }
         binding.etPin.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }

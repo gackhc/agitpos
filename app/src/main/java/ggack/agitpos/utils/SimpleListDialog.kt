@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ggack.agitpos.data.model.FromMap
@@ -23,7 +24,8 @@ class SimpleListDialog(val context: Context, val list : List<String>, val result
         const val TYPE_TWO_BUTTON = 2
     }
     private var dlg : Dialog = Dialog(context)
-
+    private var margin : Int = 10
+    private var textSize : Int = 20
     init{
         dlg.requestWindowFeature(Window.FEATURE_NO_TITLE)
         binding = DialogSimpleListBinding.inflate(LayoutInflater.from(context))
@@ -56,6 +58,13 @@ class SimpleListDialog(val context: Context, val list : List<String>, val result
         dlg.dismiss()
     }
 
+    fun setListMargin(i : Int) {
+        margin = i
+    }
+
+    fun setListTextSize(i : Int) {
+        textSize = i
+    }
     val onClickListener = View.OnClickListener{
         when(it){
             binding.btnOK ->{
@@ -72,7 +81,7 @@ class SimpleListDialog(val context: Context, val list : List<String>, val result
         fun onResult(result : String)
     }
 
-    private inner class SimpleAdapter() : RecyclerView.Adapter<SimpleAdapter.MyViewHolder>(){
+    private inner class SimpleAdapter : RecyclerView.Adapter<SimpleAdapter.MyViewHolder>(){
         inner class MyViewHolder(var b : ItemSimpleListBinding): RecyclerView.ViewHolder(b.root) {
             fun bind(name : String) {
                 b.tv.text = name
@@ -80,6 +89,10 @@ class SimpleListDialog(val context: Context, val list : List<String>, val result
                     resultCallback?.onResult(name)
                     dismiss()
                 }
+                val lp = b.root.layoutParams as RecyclerView.LayoutParams
+                lp.setMargins(10,margin,10,margin)
+                b.root.layoutParams = lp
+                b.tv.textSize = textSize.toFloat()
             }
         }
 

@@ -20,7 +20,7 @@ object FirebaseComm {
     val liveUserList = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     val liveHistory = MutableLiveData<MutableMap<String, HistoryModel>?>(null)
-    val liveHistoryByName = MutableLiveData<MutableMap<String, MutableList<HistoryModel>>>(null)
+    val liveHistoryByName = MutableLiveData<MutableMap<String, MutableList<HistoryModel>>?>(null)
     fun init() {
         mDatabase = FirebaseDatabase.getInstance().reference
     }
@@ -148,9 +148,9 @@ object FirebaseComm {
                 it.key?.let {key ->
                     FromMap.toHistoryModel(it.value as Map<String, Any?>).let { model ->
                         map[key] = model
-                        if (mapName[key] == null)
-                            mapName[key] = mutableListOf()
-                        mapName[key]?.add(model)
+                        if (mapName[model.nickname] == null)
+                            mapName[model.nickname] = mutableListOf()
+                        mapName[model.nickname]?.add(model)
                     }
                 }
             }

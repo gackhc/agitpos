@@ -17,6 +17,8 @@ import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.UserAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.SimpleEditDialog
+import ggack.agitpos.utils.SimpleListDialog
+import ggack.agitpos.utils.Utils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -25,6 +27,7 @@ class UserListFragment : Fragment() {
     private var adapter : UserAdapter? = null
     private lateinit var viewModel : MainViewModel
     var mapUserList = mapOf<String, Map<String, Any>>()
+    var mapHistoryByName = mutableMapOf<String, MutableList<String>>()
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentUserListBinding.inflate(inflater, container, false)
         return binding?.root
@@ -54,6 +57,25 @@ class UserListFragment : Fragment() {
                 adapter?.notifyDataSetChanged()
             }
         }
+        viewModel.liveHistoryByName.observe(viewLifecycleOwner) {
+            it?.keys?.forEach { key ->
+                it[key]?.let {list ->
+                    val newList = mutableListOf<String>()
+                    list.forEach { item ->
+                        val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("dd일 hh:mm:ss"))
+                        var text = "$date : [${item.kind}]"
+                        if(item.money != 0)
+                            text += " [금액 : ${item.money}]"
+                        if(item.item?.keys != null && item.item?.keys?.isNotEmpty() == true)
+                            text += " ${item.item?.keys}"
+                        if(item.etc.isNotEmpty())
+                            text += " [기타 : ${item.etc}]"
+                        newList.add(text)
+                    }
+                    mapHistoryByName[key] = newList
+                }
+            }
+        }
     }
 
     fun initAdapter() {
@@ -77,6 +99,10 @@ class UserListFragment : Fragment() {
 
             override fun onRecord(key: String, item: Any?) {
                 super.onRecord(key, item)
+                val dlg = mapHistoryByName[key]?.let { SimpleListDialog(requireContext(), it) {} }
+                dlg?.setListMargin(0)
+                dlg?.setListTextSize(10)
+                dlg?.show()
             }
 
             override fun onMember(key: String, item: Any?, b: Boolean) {

@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.Window
 import android.view.inputmethod.InputMethodManager
-import ggack.agitpos.databinding.DialogSimpleBinding
 import ggack.agitpos.databinding.DialogSimpleEditBinding
 
 class SimpleEditDialog(val context: Context, val type : Int, val resultCallback : ResultCallback?) {
@@ -19,7 +18,6 @@ class SimpleEditDialog(val context: Context, val type : Int, val resultCallback 
         const val RESULT_CANCEL = 2
     }
     private var dlg : Dialog = Dialog(context)
-
     init{
         dlg.requestWindowFeature(Window.FEATURE_NO_TITLE)
         binding = DialogSimpleEditBinding.inflate(LayoutInflater.from(context))
