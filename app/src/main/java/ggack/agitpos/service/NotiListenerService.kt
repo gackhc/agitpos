@@ -1,13 +1,21 @@
  package ggack.agitpos.service
 
+import android.app.AlarmManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
+import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.DepositModel
 import ggack.agitpos.data.model.FromMap
 import ggack.agitpos.data.model.HistoryModel
+import ggack.agitpos.ui.view.activity.LoginActivity
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
@@ -19,12 +27,18 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 
  class NotiListenerService: NotificationListenerService() {
      private var observerUser : Observer<Any?>? = null
      private var mUserPrepared = false
      private var mUserList : Map<String, Map<String, Any>>? = null
+
+     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+         startNotiService()
+         return super.onStartCommand(intent, flags, startId)
+     }
 
      override fun onListenerConnected() {
          super.onListenerConnected()
@@ -95,7 +109,8 @@ import java.time.format.DateTimeFormatter
              }
          } else if(sbn?.packageName == "com.samsung.android.messaging") {
              val body = sbn?.notification?.extras?.getString("android.text")?:""
-             if (body.contains("[카카오뱅크]") && body.contains("입금") && body.contains("(1421)")) {
+             val bankAccount = Utils.getPref(this, "bankAccount")
+             if (body.contains("[카카오뱅크]") && body.contains("입금") && body.contains("($bankAccount)")) {
                  val strArray = body.split("\n")
 
                  var nickName : String? = null
@@ -139,5 +154,56 @@ import java.time.format.DateTimeFormatter
      }
      override fun onNotificationRemoved(sbn: StatusBarNotification?) {
          super.onNotificationRemoved(sbn)
+     }
+
+
+
+     fun startNotiService() {
+         var content = "입금 확인중"
+         val builder = NotificationCompat.Builder(this, getString(R.string.app_name))
+         builder.setSmallIcon(R.drawable.ic_launcher_foreground)
+         val style = NotificationCompat.BigTextStyle()
+         style.bigText("")
+         style.setBigContentTitle(null)
+         style.setSummaryText("")
+         builder.setContentText(content)
+         builder.setContentTitle(null)
+         builder.setOngoing(true)
+         builder.setStyle(style)
+         builder.setWhen(0)
+         builder.setShowWhen(false)
+         builder.setVibrate(null)
+         builder.setDefaults(0)
+         builder.setSound(null)
+         builder.priority = NotificationCompat.PRIORITY_LOW
+
+         val notificationIntent = Intent(this, LoginActivity::class.java)
+         val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
+         builder.setContentIntent(pendingIntent)
+
+         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+         val notiChannel = NotificationChannel(getString(R.string.app_name), getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT)
+         notiChannel.vibrationPattern = longArrayOf(0L)
+         notiChannel.enableVibration(false)
+         notiChannel.importance = NotificationManager.IMPORTANCE_LOW
+         manager.createNotificationChannel(notiChannel)
+         val notification = builder.build()
+         startForeground(2102, notification)
+     }
+
+     // 서비스 재시작 코드
+     override fun onDestroy() {
+         setAlarmTimer()
+         super.onDestroy()
+     }
+     fun setAlarmTimer() {
+         val c = Calendar.getInstance()
+         c.timeInMillis = System.currentTimeMillis()
+         c.add(Calendar.SECOND, 1)
+         val intent = Intent(this, AlarmReceiver::class.java)
+         val sender = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+         val mAlarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+         mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.timeInMillis, sender)
+         Log.e("DepositService", "setAlarmTimer")
      }
 }

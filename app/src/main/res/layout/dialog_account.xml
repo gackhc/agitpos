@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tvSimple"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="20dp"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:text="타이틀"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+    <EditText
+        android:id="@+id/editTextName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:paddingVertical="10dp"
+        android:paddingHorizontal="20dp"
+        android:textSize="12sp"
+        android:hint="계좌 소유주 이름을 입력해 주세요"
+        app:layout_constraintTop_toBottomOf="@id/tvSimple"
+        />
+    <EditText
+        android:id="@+id/editTextAccount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:paddingVertical="10dp"
+        android:paddingHorizontal="20dp"
+        android:textSize="12sp"
+        android:inputType="number"
+        android:hint="카카오뱅크 계좌번호를 입력해주세요"
+        app:layout_constraintTop_toBottomOf="@id/editTextName"
+        />
+    <EditText
+        android:id="@+id/edit_text_kakao_pay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:paddingVertical="10dp"
+        android:paddingHorizontal="20dp"
+        android:textSize="12sp"
+        android:inputType="textUri"
+        android:hint="카카오페이 URL을 입력해 주세요"
+        app:layout_constraintTop_toBottomOf="@id/editTextAccount"
+        />
+    <Button
+        android:id="@+id/btnConfirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="15dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="20dp"
+        android:text="@string/textConfirm"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_kakao_pay"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -56,7 +56,7 @@ class RestartService : Service() {
         /////////////////////////////////////////////////////////////////////
 
         /////////////////////////////////////////////////////////////////////
-        val intent = Intent(this, DepositService::class.java)
+        val intent = Intent(this, NotiListenerService::class.java)
         if (!Utils.isServiceRunningCheck(applicationContext)) startService(intent)
 
         stopForeground(true)

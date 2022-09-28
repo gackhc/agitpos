@@ -17,4 +17,10 @@ object FromMap {
         (map["money"] as Long).toInt(),
         map["item"] as Map<String, Map<String, Any>>?,
         map["etc"] as String)
+
+
+    fun toAccountModel(map : Map<String, Any?>) : AccountModel
+            = AccountModel((map["account"] as String?)?:"",
+        (map["name"] as String?)?:"",
+        (map["kakaopay"] as String?)?:"",)
 }

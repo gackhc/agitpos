@@ -15,7 +15,7 @@ import ggack.agitpos.listener.ListListener
 import ggack.agitpos.utils.Utils
 import java.time.format.DateTimeFormatter
 
-class HistoryAdapter(var list : MutableList<HistoryModel>) : RecyclerView.Adapter<HistoryAdapter.MyViewHolder>(){
+class HistoryAdapter(var list : MutableList<HistoryModel>, var onClickListener: View.OnClickListener) : RecyclerView.Adapter<HistoryAdapter.MyViewHolder>(){
     inner class MyViewHolder(var b : ItemHistoryBinding): RecyclerView.ViewHolder(b.root) {
         fun bind(item : HistoryModel) {
             item.nickname
@@ -31,6 +31,8 @@ class HistoryAdapter(var list : MutableList<HistoryModel>) : RecyclerView.Adapte
                 text += " [기타 : ${item.etc}]"
 
             b.tv.text = text
+
+            b.root.setOnClickListener { onClickListener.onClick(null) }
         }
     }
 

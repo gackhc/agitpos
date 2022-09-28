@@ -15,7 +15,8 @@ class RestartActivityService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Handler(mainLooper).postDelayed({
-            if(Utils.isAppIsInBackground(this)) {
+            val restart = Utils.getPrefBoolean(this, "restart")
+            if(restart && Utils.isAppIsInBackground(this)) {
                 val i = Intent(applicationContext, LoginActivity::class.java)
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 applicationContext.startActivity(i)

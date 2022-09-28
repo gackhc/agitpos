@@ -89,8 +89,19 @@ object Utils {
     }
     fun setPref(context: Context, key : String, v : Int) {
         val pref = context.getSharedPreferences("agitpos", Context.MODE_PRIVATE)
-        pref.edit().putInt("key", v)
-        pref.edit().apply()
+        val edit= pref.edit()
+        edit.putInt(key, v)
+        edit.apply()
+    }
+    fun getPrefBoolean(context: Context, key : String) : Boolean {
+        val pref = context.getSharedPreferences("agitpos", Context.MODE_PRIVATE)
+        return pref.getBoolean(key, false)
+    }
+    fun setPref(context: Context, key : String, v : Boolean) {
+        val pref = context.getSharedPreferences("agitpos", Context.MODE_PRIVATE)
+        val edit= pref.edit()
+        edit.putBoolean(key, v)
+        edit.apply()
     }
 
     fun isServiceRunningCheck(context: Context): Boolean {

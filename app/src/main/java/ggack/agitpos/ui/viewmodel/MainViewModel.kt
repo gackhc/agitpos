@@ -7,14 +7,12 @@ import android.text.InputFilter
 import android.text.InputType
 import android.view.View
 import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.core.view.marginEnd
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.DepositModel
+import ggack.agitpos.data.model.AccountModel
 import ggack.agitpos.data.model.HistoryModel
 import ggack.agitpos.data.model.UserModel
 import ggack.agitpos.data.sms.SmsManager
@@ -25,6 +23,7 @@ class MainViewModel : BaseViewModel() {
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveDeposits: LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveHistoryByName : LiveData<MutableMap<String, MutableList<HistoryModel>>?>
+    lateinit var liveAccount : LiveData<AccountModel?>
 
     val liveCurrentUser = MutableLiveData<UserModel?>(null)
     var userName = ""
@@ -32,6 +31,7 @@ class MainViewModel : BaseViewModel() {
         liveUserData = Transformations.map(FirebaseComm.liveUserList){it}
         liveDeposits = Transformations.map(FirebaseComm.liveDeposits){it}
         liveHistoryByName = Transformations.map(FirebaseComm.liveHistoryByName){it}
+        liveAccount = Transformations.map(FirebaseComm.liveAccount){it}
     }
     fun popupAddUser(context : Context) {
         val editText = EditText(context)
@@ -103,5 +103,9 @@ class MainViewModel : BaseViewModel() {
     fun setUser(name : String, user : UserModel) {
         userName = name
         liveCurrentUser.postValue(user)
+    }
+
+    fun setAccount(context: Context, account : String, name : String, kakaoPay : String) {
+        FirebaseComm.setAccount(context, account.replace(" ", "").replace("-", ""), name, kakaoPay)
     }
 }

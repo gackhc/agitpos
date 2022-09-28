@@ -1,22 +1,28 @@
 package ggack.agitpos.ui.view.activity
 
+import Singleton
 import android.Manifest
 import android.content.Intent
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
-import android.provider.ContactsContract
+import android.os.Handler
+import android.os.PowerManager
+import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.core.widget.addTextChangedListener
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -24,42 +30,33 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.MultiFormatWriter
+import com.journeyapps.barcodescanner.BarcodeEncoder
 import ggack.agitpos.R
-import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.FromMap
+import ggack.agitpos.data.model.HistoryModel
 import ggack.agitpos.databinding.ActivityLoginBinding
-import ggack.agitpos.databinding.ActivityMainBinding
 import ggack.agitpos.listener.ListListener
-import ggack.agitpos.service.DepositService
 import ggack.agitpos.service.RestartService
+import ggack.agitpos.ui.adapter.HistoryAdapter
 import ggack.agitpos.ui.adapter.UserNameAdapter
+import ggack.agitpos.ui.base.BaseActivity
 import ggack.agitpos.ui.viewmodel.LoginViewModel
-import ggack.agitpos.ui.viewmodel.MainViewModel
+import ggack.agitpos.utils.SimpleDialog
 import ggack.agitpos.utils.Utils
 import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.Map
+import kotlin.collections.forEach
+import kotlin.collections.hashMapOf
+import kotlin.collections.lastIndex
+import kotlin.collections.mutableListOf
+import kotlin.collections.set
+import kotlin.collections.sorted
+import kotlin.collections.toList
 import kotlin.concurrent.timer
-import androidx.core.app.ActivityCompat
-
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Handler
-
-import androidx.core.content.ContextCompat
-import android.os.PowerManager
-import android.provider.Settings
-import androidx.appcompat.app.AlertDialog
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.text.set
-import androidx.core.view.isVisible
-import ggack.agitpos.data.model.HistoryModel
-import ggack.agitpos.service.RestartActivityService
-import ggack.agitpos.ui.adapter.HistoryAdapter
-import ggack.agitpos.ui.base.BaseActivity
-import ggack.agitpos.utils.SimpleDialog
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 class LoginActivity : BaseActivity() {
@@ -80,17 +77,16 @@ class LoginActivity : BaseActivity() {
         setContentView(binding.root)
         viewModel.init()
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            //.requestIdToken(getString(R.string.default_web_client_id))
+            .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
         mAuth = Firebase.auth
         mGoogleClient = GoogleSignIn.getClient(this, gso)
-        FirebaseComm.init()
-        FirebaseComm.setAccount("gackhc@gmailcom")
         initHandler()
         initAdapter()
         initObserver()
         initView()
+        signIn()
     }
     fun initHandler() {
         mHandler = Handler(mainLooper) {
@@ -120,8 +116,8 @@ class LoginActivity : BaseActivity() {
         val dlg = SimpleDialog(this, SimpleDialog.TYPE_TWO_BUTTON) {
             when(it) {
                 RESULT_OK -> {
-                    isDestroying = true
                     finishAffinity()
+                    Utils.setPref(this, "restart", false)
                 }
             }
         }
@@ -131,7 +127,7 @@ class LoginActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-
+        Utils.setPref(this, "restart", false)
         val permissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS)
         val permissionCheck =
             ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) + ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
@@ -157,14 +153,14 @@ class LoginActivity : BaseActivity() {
                 return
             }
         }
-
+        viewModel.firebaseValidate()
+        Utils.setPref(this, "restart", true)
         initPowerMode()
         mTimerRefresh = timer(period = 10000, initialDelay = 0) {
             viewModel.refreshUser()
         }
         binding.etNickname.setText("")
         binding.etPin.setText("")
-        FirebaseComm.setHistoryListener()
     }
     override fun onPause() {
         super.onPause()
@@ -186,19 +182,59 @@ class LoginActivity : BaseActivity() {
                 mAdapter?.notifyDataSetChanged()
             }
         }
-        FirebaseComm.liveHistory.observe(this) {
+        viewModel.liveHistory.observe(this) {
             val keys = it?.keys?.sorted()
             keys?.forEach { key ->
                 if(!historyKeys.contains(key)) {
                     it[key]?.let { model ->
-                        mListHistory.add(model)
-                        mHistoryAdapter?.notifyItemInserted(mListHistory.lastIndex)
-                        binding.rvHistory.scrollToPosition(mListHistory.lastIndex)
+                        if(mListHistory.size < 10) {
+                            mListHistory.add(model)
+                            mHistoryAdapter?.notifyItemInserted(mListHistory.lastIndex)
+                            binding.rvHistory.scrollToPosition(mListHistory.lastIndex)
+                        } else {
+                            mListHistory.removeAt(0)
+                            mListHistory.add(model)
+                            mHistoryAdapter?.notifyDataSetChanged()
+                            binding.rvHistory.scrollToPosition(mListHistory.lastIndex)
+                        }
                     }
                 }
             }
         }
+        viewModel.liveValidate.observe(this) {
+            if (!it) {
+                if(dialogValidate?.isShowing() == true)
+                    return@observe
+                dialogValidate = SimpleDialog(this, SimpleDialog.TYPE_ONE_BUTTON) {
+                    finishAffinity()
+                    Utils.setPref(this, "restart", false)
+                }
+                dialogValidate?.setText("사용기간이 만료되었습니다. 관리자에게 문의 바랍니다. \nhongc90@naver.com")
+                dialogValidate?.setCancelable(false)
+                dialogValidate?.show()
+            }
+        }
+
+        viewModel.liveAccount.observe(this) {
+            it?.let {
+                if(it.account.isNotBlank()) {
+                    binding.tv1.visibility = View.VISIBLE
+                    binding.tv2.visibility = View.VISIBLE
+                    binding.tv3.visibility = View.VISIBLE
+                    binding.tvBankAccount.visibility = View.VISIBLE
+                    binding.tvBankAccount.text = "카카오뱅크 ${it.account} ${it.name}"
+                }
+                if(it.kakaopay.isNotBlank()) {
+                    binding.tv4.visibility = View.VISIBLE
+                    binding.ivQr.visibility = View.VISIBLE
+                    val hints: Hashtable<EncodeHintType, String> = Hashtable()
+                    hints[EncodeHintType.CHARACTER_SET] = "UTF-8"
+                    binding.ivQr.setImageBitmap(BarcodeEncoder().createBitmap(MultiFormatWriter().encode(it.kakaopay, BarcodeFormat.QR_CODE, 1000, 1000, hints)))
+                }
+            }
+        }
     }
+    var dialogValidate : SimpleDialog? = null
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -208,27 +244,38 @@ class LoginActivity : BaseActivity() {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 // Google Sign In was successful, authenticate with Firebase
-                val account = task.getResult(ApiException::class.java)!!
-                firebaseAuthWithGoogle(account.idToken!!)
+                val account = task.getResult(ApiException::class.java)
+                firebaseAuthWithGoogle(account)
             } catch (e: ApiException) {
                 // Google Sign In failed, update UI appropriately
                 Log.w("login", "Google sign in failed", e)
+                Toast.makeText(this, "구글 로그인 실패", Toast.LENGTH_SHORT).show()
+                finishAffinity()
+                Utils.setPref(this, "restart", false)
             }
         }
     }
 
-    private fun firebaseAuthWithGoogle(idToken: String) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
+    private fun firebaseAuthWithGoogle(account: GoogleSignInAccount) {
+        val credential = GoogleAuthProvider.getCredential(account.idToken, null)
         mAuth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     Log.d("login", "signInWithCredential:success")
                     val user = mAuth.currentUser
                     Singleton.account = user?.email
-                    setResult(RESULT_OK)
-                    finish()
+                    if(user?.email.isNullOrEmpty()) {
+                        Toast.makeText(this, "구글 로그인 실패(이메일 정보 이상)", Toast.LENGTH_SHORT).show()
+                        finishAffinity()
+                        Utils.setPref(this, "restart", false)
+                    } else {
+                        viewModel.firebaseInit(this, user?.email?.replace(".","")?:"")
+                    }
                 } else {
                     Log.w("login", "signInWithCredential:failure", task.exception)
+                    Toast.makeText(this, "구글 로그인 실패", Toast.LENGTH_SHORT).show()
+                    finishAffinity()
+                    Utils.setPref(this, "restart", false)
                 }
             }
     }
@@ -332,7 +379,9 @@ class LoginActivity : BaseActivity() {
 
 
         binding.rvHistory.layoutManager = LinearLayoutManager(this)
-        mHistoryAdapter = HistoryAdapter(mListHistory)
+        mHistoryAdapter = HistoryAdapter(mListHistory) {
+            binding.rvNickName.visibility = View.GONE
+        }
         binding.rvHistory.adapter = mHistoryAdapter
     }
 }
