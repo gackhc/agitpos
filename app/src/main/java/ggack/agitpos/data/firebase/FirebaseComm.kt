@@ -227,7 +227,7 @@ object FirebaseComm {
         }
     }
     private var prevListenerMonth = ""
-    fun setHistoryListener() {
+    private fun setHistoryListener() {
         mID?.let { it ->
             val now = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"))
             if(now != prevListenerMonth) {

@@ -161,6 +161,9 @@ class LoginActivity : BaseActivity() {
         }
         binding.etNickname.setText("")
         binding.etPin.setText("")
+
+        mHandler.removeMessages(0)
+        mHandler.sendEmptyMessage(0)
     }
     override fun onPause() {
         super.onPause()
@@ -320,6 +323,9 @@ class LoginActivity : BaseActivity() {
             if(hasFocus) {
                 binding.rvNickName.visibility = View.GONE
             }
+        }
+        binding.rvHistory.setOnClickListener {
+            binding.rvNickName.visibility = View.GONE
         }
         binding.etPin.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
