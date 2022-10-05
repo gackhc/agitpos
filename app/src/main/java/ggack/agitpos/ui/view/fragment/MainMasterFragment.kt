@@ -56,5 +56,8 @@ class MainMasterFragment : Fragment() {
         viewModel.liveAccount.observe(viewLifecycleOwner) {
             account = it
         }
+        binding?.btnCharge?.setOnClickListener {
+            (activity as MainActivity).addFragment(MasterChargeFragment())
+        }
     }
 }

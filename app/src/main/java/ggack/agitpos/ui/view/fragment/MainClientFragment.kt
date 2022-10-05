@@ -46,28 +46,27 @@ class MainClientFragment : Fragment() {
     private var mTotal = 0
     private val mListItems = if(LocalDateTime.now().dayOfMonth < 16) {
         mutableListOf(
-            ItemModel("일일 이용권", 6000, 1, null),
-            ItemModel("월간 이용권", 40000, 1, null),
-            ItemModel("캔음료", 1300, 1, null),
-            ItemModel("라면", 2000, 1, null),
-            ItemModel("고급라면", 2500, 1, null),
-            ItemModel("계란", 500, 1, null),
-            ItemModel("아메리카노", 1000, 1, null),
-            ItemModel("에이드류", 1000, 1, null),
-            ItemModel("라떼류", 2000, 1, null),
-            ItemModel("밀크티", 2000, 1, null)
-        )
+            ItemModel("일일 이용권", 6000, 1),
+            ItemModel("월간 이용권", 40000, 1),
+            ItemModel("캔음료", 1300, 1),
+            ItemModel("라면", 2000, 1),
+            ItemModel("고급라면", 2500, 1),
+            ItemModel("계란", 500, 1),
+            ItemModel("아메리카노", 1000, 1),
+            ItemModel("에이드류", 1000, 1),
+            ItemModel("라떼류", 2000, 1),
+            ItemModel("밀크티", 2000, 1))
     } else {
         mutableListOf(
-            ItemModel("일일 이용권", 6000, 1, null),
-            ItemModel("캔음료", 1300, 1, null),
-            ItemModel("라면", 2000, 1, null),
-            ItemModel("고급라면", 2500, 1, null),
-            ItemModel("계란", 500, 1, null),
-            ItemModel("아메리카노", 1000, 1, null),
-            ItemModel("에이드류", 1000, 1, null),
-            ItemModel("라떼류", 2000, 1, null),
-            ItemModel("밀크티", 2000, 1, null))
+            ItemModel("일일 이용권", 6000, 1),
+            ItemModel("캔음료", 1300, 1),
+            ItemModel("라면", 2000, 1),
+            ItemModel("고급라면", 2500, 1),
+            ItemModel("계란", 500, 1),
+            ItemModel("아메리카노", 1000, 1),
+            ItemModel("에이드류", 1000, 1),
+            ItemModel("라떼류", 2000, 1),
+            ItemModel("밀크티", 2000, 1))
     }
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMainClientBinding.inflate(inflater, container, false)

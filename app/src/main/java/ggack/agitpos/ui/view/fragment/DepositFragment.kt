@@ -74,7 +74,7 @@ class DepositFragment : Fragment() {
             override fun onClick(key: String, item: Any?) {
                 super.onClick(key, item)
                 val model = item as DepositModel
-                val dlg = SimpleListDialog(requireContext(), mMapName.keys.toList()) { name ->
+                val dlg = SimpleListDialog(requireContext(), mMapName.keys.toList().sorted()) { name ->
                     addAll(model.name, name)
                 }
                 dlg.setBtnTxt("취소")
@@ -121,12 +121,16 @@ class DepositFragment : Fragment() {
                 while(!mUserPrepared) {
                     delay(10)
                 }
-                mUserPrepared = false
-                mapDeposit[date]?.let{map->
-                    val m = FromMap.toDepositModel(map)
-                    if(m.name == originName){
-                        activity?.runOnUiThread {
-                            setData(date, name, m)
+                if(mapDeposit.containsKey(date)) {
+                    mUserPrepared = false
+                    mapDeposit[date]?.let { map ->
+                        val m = FromMap.toDepositModel(map)
+                        if (m.name == originName) {
+                            activity?.runOnUiThread {
+                                setData(date, name, m)
+                            }
+                        } else {
+                            mUserPrepared = true
                         }
                     }
                 }

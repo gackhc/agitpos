@@ -319,13 +319,9 @@ class LoginActivity : BaseActivity() {
                 binding.rvNickName.visibility = View.GONE
             }
         }
-        binding.rvHistory.setOnFocusChangeListener { v, hasFocus ->
-            if(hasFocus) {
-                binding.rvNickName.visibility = View.GONE
-            }
-        }
-        binding.rvHistory.setOnClickListener {
+        binding.rvHistory.setOnTouchListener { v, event ->
             binding.rvNickName.visibility = View.GONE
+            false
         }
         binding.etPin.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {

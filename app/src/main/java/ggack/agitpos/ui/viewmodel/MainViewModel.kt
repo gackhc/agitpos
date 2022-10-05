@@ -17,6 +17,7 @@ import ggack.agitpos.data.model.HistoryModel
 import ggack.agitpos.data.model.UserModel
 import ggack.agitpos.data.sms.SmsManager
 import ggack.agitpos.ui.base.BaseViewModel
+import ggack.agitpos.utils.CharSearcher
 import ggack.agitpos.utils.Permissions
 
 class MainViewModel : BaseViewModel() {
@@ -107,5 +108,22 @@ class MainViewModel : BaseViewModel() {
 
     fun setAccount(context: Context, account : String, name : String, kakaoPay : String) {
         FirebaseComm.setAccount(context, account.replace(" ", "").replace("-", ""), name, kakaoPay)
+    }
+    fun GetUserByConsonant(key : String) : List<String>{
+        val searcher = CharSearcher()
+        val listData = mutableListOf<String>()
+        liveUserData.value?.keys?.let {
+            for (name in it) {
+                if (searcher.matchString(name, key))
+                    listData.add(name)
+            }
+            if (listData.size == 0) {
+                for (name in it) {
+                    if (name >= key)
+                        listData.add(name)
+                }
+            }
+        }
+        return listData.sorted()
     }
 }

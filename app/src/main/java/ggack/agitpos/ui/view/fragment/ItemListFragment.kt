@@ -41,9 +41,9 @@ class ItemListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
-        binding?.btnAddUser?.setOnClickListener {
-            viewModel.popupAddUser(requireContext())
-        }
+//        binding?.btnAddUser?.setOnClickListener {
+//            viewModel.popupAddUser(requireContext())
+//        }
         initObserver()
         initAdapter()
         viewModel.refreshUser()
@@ -80,7 +80,7 @@ class ItemListFragment : Fragment() {
     }
 
     fun initAdapter() {
-        binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
+        //binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
         adapter = UserAdapter(requireContext(), mapUserList, object : ListListener {
             override fun onRemove(key: String, item: Any?) {
                 super.onRemove(key, item)
@@ -111,6 +111,6 @@ class ItemListFragment : Fragment() {
                 FirebaseComm.setMembership(key, if(b) LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")) else "")
             }
         })
-        binding?.recyclerView?.adapter = adapter
+        //binding?.recyclerView?.adapter = adapter
     }
 }
