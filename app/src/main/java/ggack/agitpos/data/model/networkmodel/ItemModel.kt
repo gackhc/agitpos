@@ -1,6 +1,4 @@
-package ggack.agitpos.data.model
-
-import com.google.firebase.database.Exclude
+package ggack.agitpos.data.model.networkmodel
 
 data class ItemModel(var name : String, var price : Int, var cnt : Int) {
     fun getMap() : Map<String, Any> = mapOf(

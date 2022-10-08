@@ -1,14 +1,10 @@
 package ggack.agitpos.ui.adapter
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import ggack.agitpos.data.model.FromMap
-import ggack.agitpos.data.model.ItemModel
-import ggack.agitpos.data.model.UserModel
+import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.databinding.ItemItemsBinding
-import ggack.agitpos.databinding.ItemUserListBinding
 import ggack.agitpos.listener.ListListener
 
 class ItemAdapter(var list : MutableList<ItemModel>, val listener : ListListener) : RecyclerView.Adapter<ItemAdapter.MyViewHolder>(){

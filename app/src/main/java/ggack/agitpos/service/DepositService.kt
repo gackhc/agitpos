@@ -4,34 +4,16 @@ import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.graphics.Paint
 import android.os.*
 import androidx.lifecycle.Observer
-import ggack.agitpos.data.model.DepositModel
 import ggack.agitpos.data.sms.SmsManager
 import java.util.*
-import kotlin.concurrent.timer
 import android.telephony.SmsMessage
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.FromMap
-import ggack.agitpos.data.model.HistoryModel
-import ggack.agitpos.data.model.UserModel
 import ggack.agitpos.ui.view.activity.LoginActivity
-import ggack.agitpos.utils.Constants
-import ggack.agitpos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.lang.Exception
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 
 
 open class DepositService : Service() {

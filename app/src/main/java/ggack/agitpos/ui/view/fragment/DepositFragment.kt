@@ -9,9 +9,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.DepositModel
-import ggack.agitpos.data.model.FromMap
-import ggack.agitpos.data.model.HistoryModel
+import ggack.agitpos.data.model.networkmodel.DepositModel
+import ggack.agitpos.data.model.networkmodel.FromMap
+import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.databinding.FragmentListBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.DepositAdapter
@@ -19,13 +19,10 @@ import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.SimpleDialog
 import ggack.agitpos.utils.SimpleListDialog
-import ggack.agitpos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class DepositFragment : Fragment() {
     private var binding : FragmentListBinding? = null
@@ -140,14 +137,16 @@ class DepositFragment : Fragment() {
     fun setData(key : String, name : String, model : DepositModel) {
         val user = FromMap.toUserModel(mMapName[name]!!)
         FirebaseComm.setMoney(name, model.money + user.money)
-        FirebaseComm.addHistory(HistoryModel(
+        FirebaseComm.addHistory(
+            HistoryModel(
             model.date,
             name,
             Constants.HISTORY_DEPOSIT,
             model.money,
             mapOf(),
             model.name
-        ))
+        )
+        )
         FirebaseComm.removeDepositItem(key)
         val pos = adapter?.keys?.indexOf(key)
         pos?.let{

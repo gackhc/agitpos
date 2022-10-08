@@ -7,8 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import ggack.agitpos.R
-import ggack.agitpos.data.model.AccountModel
+import ggack.agitpos.data.model.networkmodel.AccountModel
 import ggack.agitpos.databinding.FragmentMainMasterBinding
 import ggack.agitpos.ui.view.activity.MainActivity
 import ggack.agitpos.ui.viewmodel.MainViewModel

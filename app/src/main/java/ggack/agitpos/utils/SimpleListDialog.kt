@@ -1,21 +1,15 @@
 package ggack.agitpos.utils
 
-import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.widget.LinearLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import ggack.agitpos.data.model.FromMap
-import ggack.agitpos.data.model.UserModel
 import ggack.agitpos.databinding.DialogSimpleListBinding
 import ggack.agitpos.databinding.ItemSimpleListBinding
-import ggack.agitpos.databinding.ItemUserListBinding
-import ggack.agitpos.listener.ListListener
 
 class SimpleListDialog(val context: Context, val list : List<String>, val resultCallback : ResultCallback?) {
     var binding : DialogSimpleListBinding

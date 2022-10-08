@@ -16,18 +16,16 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.HistoryModel
-import ggack.agitpos.data.model.ItemModel
-import ggack.agitpos.data.model.UserModel
+import ggack.agitpos.data.model.networkmodel.HistoryModel
+import ggack.agitpos.data.model.networkmodel.ItemModel
+import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.databinding.FragmentMainClientBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.adapter.PaymentAdapter
-import ggack.agitpos.ui.view.activity.MainActivity
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.SimpleDialog
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -55,7 +53,8 @@ class MainClientFragment : Fragment() {
             ItemModel("아메리카노", 1000, 1),
             ItemModel("에이드류", 1000, 1),
             ItemModel("라떼류", 2000, 1),
-            ItemModel("밀크티", 2000, 1))
+            ItemModel("밀크티", 2000, 1)
+        )
     } else {
         mutableListOf(
             ItemModel("일일 이용권", 6000, 1),
@@ -66,7 +65,8 @@ class MainClientFragment : Fragment() {
             ItemModel("아메리카노", 1000, 1),
             ItemModel("에이드류", 1000, 1),
             ItemModel("라떼류", 2000, 1),
-            ItemModel("밀크티", 2000, 1))
+            ItemModel("밀크티", 2000, 1)
+        )
     }
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMainClientBinding.inflate(inflater, container, false)
@@ -109,14 +109,16 @@ class MainClientFragment : Fragment() {
                                 FirebaseComm.setMembership(viewModel.userName,
                                     LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
                             FirebaseComm.setMoney(viewModel.userName, user.money - mTotal)
-                            FirebaseComm.addHistory(HistoryModel(
+                            FirebaseComm.addHistory(
+                                HistoryModel(
                                 Instant.now().toEpochMilli(),
                                 viewModel.userName,
                                 Constants.HISTORY_PAYMENT,
                                 mTotal,
                                 map,
                                 ""
-                            ))
+                            )
+                            )
                             Toast.makeText(requireContext(), "결제가 완료되었습니다.", Toast.LENGTH_SHORT).show()
                             activity?.onBackPressed()
                         }

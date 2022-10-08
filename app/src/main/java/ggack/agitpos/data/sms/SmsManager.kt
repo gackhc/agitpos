@@ -1,12 +1,6 @@
 package ggack.agitpos.data.sms
 
 import android.Manifest
-import android.app.Activity
-import com.google.android.gms.auth.api.phone.SmsRetriever
-import java.lang.ref.WeakReference
-import android.R
-
-import android.widget.TextView
 
 import android.content.ContentResolver
 import android.content.Context
@@ -14,21 +8,12 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.util.Log
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import ggack.agitpos.data.model.DepositModel
+import ggack.agitpos.data.model.networkmodel.DepositModel
 import ggack.agitpos.utils.Utils
 import java.lang.Exception
-import java.lang.StringBuilder
-import java.text.SimpleDateFormat
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.util.*
 
 
 object SmsManager {

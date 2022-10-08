@@ -1,4 +1,4 @@
-package ggack.agitpos.data.model
+package ggack.agitpos.data.model.networkmodel
 
 data class HistoryModel(
     var date : Long,

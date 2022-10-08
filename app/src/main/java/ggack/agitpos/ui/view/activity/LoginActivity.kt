@@ -35,8 +35,8 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import ggack.agitpos.R
-import ggack.agitpos.data.model.FromMap
-import ggack.agitpos.data.model.HistoryModel
+import ggack.agitpos.data.model.networkmodel.FromMap
+import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.databinding.ActivityLoginBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.service.RestartService

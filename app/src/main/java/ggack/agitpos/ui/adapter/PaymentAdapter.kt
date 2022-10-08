@@ -3,9 +3,8 @@ package ggack.agitpos.ui.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import ggack.agitpos.data.model.ItemModel
+import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.databinding.ItemItemPaymentBinding
-import ggack.agitpos.databinding.ItemItemsBinding
 import ggack.agitpos.listener.ListListener
 
 class PaymentAdapter(var list : MutableList<ItemModel>, val listener : ListListener) : RecyclerView.Adapter<PaymentAdapter.MyViewHolder>(){

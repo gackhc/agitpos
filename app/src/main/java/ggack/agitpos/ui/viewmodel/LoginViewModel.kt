@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.AccountModel
-import ggack.agitpos.data.model.HistoryModel
+import ggack.agitpos.data.model.networkmodel.AccountModel
+import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.ui.base.BaseViewModel
 import ggack.agitpos.utils.CharSearcher
 

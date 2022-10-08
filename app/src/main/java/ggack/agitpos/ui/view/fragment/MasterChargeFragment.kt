@@ -17,17 +17,16 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.FromMap
-import ggack.agitpos.data.model.HistoryModel
-import ggack.agitpos.data.model.ItemModel
-import ggack.agitpos.data.model.UserModel
+import ggack.agitpos.data.model.networkmodel.FromMap
+import ggack.agitpos.data.model.networkmodel.HistoryModel
+import ggack.agitpos.data.model.networkmodel.ItemModel
+import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.databinding.FragmentMainMasterChargeBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.adapter.PaymentAdapter
 import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.utils.AccountDialog
 import ggack.agitpos.utils.AddItemDialog
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.SimpleDialog
@@ -57,7 +56,8 @@ class MasterChargeFragment : Fragment() {
             ItemModel("아메리카노", 1000, 1),
             ItemModel("에이드류", 1000, 1),
             ItemModel("라떼류", 2000, 1),
-            ItemModel("밀크티", 2000, 1))
+            ItemModel("밀크티", 2000, 1)
+        )
 
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMainMasterChargeBinding.inflate(inflater, container, false)

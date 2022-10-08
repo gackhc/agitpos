@@ -12,9 +12,9 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.DepositModel
-import ggack.agitpos.data.model.FromMap
-import ggack.agitpos.data.model.HistoryModel
+import ggack.agitpos.data.model.networkmodel.DepositModel
+import ggack.agitpos.data.model.networkmodel.FromMap
+import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.ui.view.activity.LoginActivity
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.Utils
@@ -22,11 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 

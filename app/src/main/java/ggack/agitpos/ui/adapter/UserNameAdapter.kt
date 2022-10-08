@@ -3,9 +3,8 @@ package ggack.agitpos.ui.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.FromMap
-import ggack.agitpos.data.model.UserModel
+import ggack.agitpos.data.model.networkmodel.FromMap
+import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.databinding.ItemUserNameBinding
 import ggack.agitpos.listener.ListListener
 

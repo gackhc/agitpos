@@ -4,22 +4,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import ggack.agitpos.data.model.FromMap
-import ggack.agitpos.data.model.HistoryModel
-import ggack.agitpos.data.model.ItemModel
-import ggack.agitpos.data.model.UserModel
+import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.databinding.ItemHistoryBinding
-import ggack.agitpos.databinding.ItemItemsBinding
-import ggack.agitpos.databinding.ItemUserListBinding
-import ggack.agitpos.listener.ListListener
 import ggack.agitpos.utils.Utils
 import java.time.format.DateTimeFormatter
 
 class HistoryAdapter(var list : MutableList<HistoryModel>, var onClickListener: View.OnClickListener) : RecyclerView.Adapter<HistoryAdapter.MyViewHolder>(){
     inner class MyViewHolder(var b : ItemHistoryBinding): RecyclerView.ViewHolder(b.root) {
         fun bind(item : HistoryModel) {
-            item.nickname
-            item.item?.keys
+            //item.nickname
+            //item.item?.keys
 
             val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("dd일 hh:mm:ss"))
             var text = "$date : [${item.nickname}] [${item.kind}]"

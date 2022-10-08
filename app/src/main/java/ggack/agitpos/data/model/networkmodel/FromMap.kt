@@ -1,4 +1,4 @@
-package ggack.agitpos.data.model
+package ggack.agitpos.data.model.networkmodel
 
 object FromMap {
     fun toDepositModel(map : Map<String, Any>) : DepositModel

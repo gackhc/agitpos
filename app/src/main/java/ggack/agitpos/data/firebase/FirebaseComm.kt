@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.database.*
-import ggack.agitpos.data.model.*
+import ggack.agitpos.data.model.networkmodel.*
 import ggack.agitpos.utils.Utils
 import java.lang.Exception
 import java.time.LocalDate
@@ -18,6 +18,7 @@ object FirebaseComm {
     val liveUserList = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     val liveHistory = MutableLiveData<MutableMap<String, HistoryModel>?>(null)
+    val liveHistoryStatistics = MutableLiveData<MutableMap<String, HistoryModel>?>(null)
     val liveValidate = MutableLiveData<Boolean>(true)
     val liveAccount = MutableLiveData<AccountModel?>(null)
     val liveHistoryByName = MutableLiveData<MutableMap<String, MutableList<HistoryModel>>?>(null)
@@ -171,6 +172,23 @@ object FirebaseComm {
         val datetime = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("ddHHmmssSSS"))
         mID?.let { it ->
             mDatabase.child(it).child("history").child(month).child(datetime).setValue(historyModel.getMap())
+        }
+    }
+    fun getHistory(month : String) { // DateTimeFormatter.ofPattern("yyyyMM")
+        mID?.let { it ->
+            mDatabase.child(it).child("history").child(month).get().addOnSuccessListener { snapshot ->
+                val children = snapshot.children.sortedBy { it.key }
+                val map : MutableMap<String, HistoryModel> = hashMapOf()
+                children.forEach {
+                    it.key?.let {key ->
+                        FromMap.toHistoryModel(it.value as Map<String, Any?>).let { model ->
+                            map[key] = model
+                        }
+                    }
+                }
+                liveHistoryStatistics.postValue(map)
+                Log.e("debug", map.toString())
+            }
         }
     }
     fun setAccount(context : Context, account : String, name : String, kakaoPay : String) {
