@@ -1,10 +1,12 @@
 package ggack.agitpos.ui.view.fragment
 
+import Singleton.isDuplicated
 import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,8 +19,8 @@ import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.DepositAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Constants
-import ggack.agitpos.utils.SimpleDialog
-import ggack.agitpos.utils.SimpleListDialog
+import ggack.agitpos.ui.view.dialog.SimpleDialog
+import ggack.agitpos.ui.view.dialog.SimpleListDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -73,6 +75,7 @@ class DepositFragment : Fragment() {
                 val model = item as DepositModel
                 val dlg = SimpleListDialog(requireContext(), mMapName.keys.toList().sorted()) { name ->
                     addAll(model.name, name)
+                    setExtraName(name, model.name)
                 }
                 dlg.setBtnTxt("취소")
                 dlg.show()
@@ -85,7 +88,16 @@ class DepositFragment : Fragment() {
                     when (it) {
                         Activity.RESULT_OK -> {
                             mUserPrepared = false
-                            FirebaseComm.addUser(model.name)
+                            if(model.name.isNotEmpty()) {
+                                if (mMapName.isDuplicated(key, model.name))
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "이름이 중복됩니다",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                else
+                                    FirebaseComm.addUser(model.name)
+                            }
                         }
                     }
                 }
@@ -134,6 +146,23 @@ class DepositFragment : Fragment() {
             }
         }
     }
+    fun setExtraName(key : String, name : String) {
+        val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
+            when(it) {
+                Activity.RESULT_OK -> {
+                    if(name.isNotEmpty()) {
+                        if (mMapName.isDuplicated(key, name))
+                            Toast.makeText(requireContext(), "이름이 중복됩니다", Toast.LENGTH_SHORT).show()
+                        else
+                            FirebaseComm.setExtraName(key, name)
+                    }
+                }
+            }
+        }
+        dlg.setText("추가이름으로 등록하시겠습니까?")
+        dlg.show()
+    }
+
     fun setData(key : String, name : String, model : DepositModel) {
         val user = FromMap.toUserModel(mMapName[name]!!)
         FirebaseComm.setMoney(name, model.money + user.money)

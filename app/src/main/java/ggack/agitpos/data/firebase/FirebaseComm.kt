@@ -157,6 +157,16 @@ object FirebaseComm {
                 }
         }
     }
+    fun setExtraName(name : String, extraName : String) {
+        mID?.let { it ->
+            mDatabase.child(it).child("users").child(name.lowercase()).child("extraName").setValue(extraName)
+                .addOnSuccessListener {
+                    getUsers()
+                }.addOnFailureListener {
+                    Log.e(TAG, "Error changePin", it)
+                }
+        }
+    }
     fun setMembership(name : String, month : String) {
         mID?.let { it ->
             mDatabase.child(it).child("users").child(name.lowercase()).child("member").setValue(month)
@@ -174,7 +184,7 @@ object FirebaseComm {
             mDatabase.child(it).child("history").child(month).child(datetime).setValue(historyModel.getMap())
         }
     }
-    fun getHistory(month : String) { // DateTimeFormatter.ofPattern("yyyyMM")
+    fun getHistoryToHistory(month : String) { // DateTimeFormatter.ofPattern("yyyyMM")
         mID?.let { it ->
             mDatabase.child(it).child("history").child(month).get().addOnSuccessListener { snapshot ->
                 val children = snapshot.children.sortedBy { it.key }
@@ -188,6 +198,31 @@ object FirebaseComm {
                 }
                 liveHistoryStatistics.postValue(map)
                 Log.e("debug", map.toString())
+            }
+        }
+    }
+
+    var searchHistoryMonth = LocalDate.now()
+    fun getPrevHistory() { // DateTimeFormatter.ofPattern("yyyyMM")
+        mID?.let { it ->
+            searchHistoryMonth = searchHistoryMonth.minusMonths(1)
+            mDatabase.child(it).child("history").child(searchHistoryMonth.format(DateTimeFormatter.ofPattern("yyyyMM"))).get().addOnSuccessListener { snapshot ->
+                val children = snapshot.children.sortedBy { it.key }
+                val map : MutableMap<String, HistoryModel> = liveHistory.value?: hashMapOf()
+                val mapName : MutableMap<String, MutableList<HistoryModel>> = liveHistoryByName.value?: hashMapOf()
+                children.forEach {
+                    it.key?.let {key ->
+                        FromMap.toHistoryModel(it.value as Map<String, Any?>).let { model ->
+                            map[key] = model
+                            if (mapName[model.nickname] == null)
+                                mapName[model.nickname] = mutableListOf()
+                            if(mapName[model.nickname]?.contains(model.date) == false)
+                                mapName[model.nickname]?.add(model)
+                        }
+                    }
+                }
+                liveHistoryByName.postValue(mapName)
+                liveHistory.postValue(map)
             }
         }
     }
@@ -225,21 +260,21 @@ object FirebaseComm {
     private val historyListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             val children = snapshot.children.sortedBy { it.key }
-            val map : MutableMap<String, HistoryModel> = hashMapOf()
-            val mapName : MutableMap<String, MutableList<HistoryModel>> = hashMapOf()
+            val map : MutableMap<String, HistoryModel> = liveHistory.value?: hashMapOf()
+            val mapName : MutableMap<String, MutableList<HistoryModel>> = liveHistoryByName.value?: hashMapOf()
             children.forEach {
                 it.key?.let {key ->
                     FromMap.toHistoryModel(it.value as Map<String, Any?>).let { model ->
                         map[key] = model
                         if (mapName[model.nickname] == null)
                             mapName[model.nickname] = mutableListOf()
-                        mapName[model.nickname]?.add(model)
+                        if(mapName[model.nickname]?.contains(model.date) == false)
+                            mapName[model.nickname]?.add(model)
                     }
                 }
             }
             liveHistoryByName.postValue(mapName)
             liveHistory.postValue(map)
-            Log.e("debug", map.toString())
         }
         override fun onCancelled(error: DatabaseError) {
         }
@@ -255,5 +290,12 @@ object FirebaseComm {
                     .addValueEventListener(historyListener)
             }
         }
+    }
+    private fun MutableList<HistoryModel>.contains(key : Long) : Boolean {
+        for(model in this) {
+            if(model.date == key)
+                return true
+        }
+        return false
     }
 }

@@ -37,6 +37,9 @@ class UserAdapter(var context : Context, var map : Map<String, Map<String, Any>>
             b.btnRecord.setOnClickListener {
                 listener.onRecord(name, item)
             }
+            b.btnAddName.setOnClickListener {
+                listener.onADD(name, item)
+            }
         }
     }
 

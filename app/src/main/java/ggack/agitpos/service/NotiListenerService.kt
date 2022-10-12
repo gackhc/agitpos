@@ -83,14 +83,15 @@ import java.util.*
                         while (!mUserPrepared) {
                             delay(10)
                         }
-                        if (mUserList?.contains(model.name) == true) {
-                            val user = FromMap.toUserModel(mUserList!![model.name]!!)
+                        val name = mUserList?.containsName(model.name)
+                        if (name != null) {
+                            val user = FromMap.toUserModel(mUserList!![name]!!)
                             val money = user.money + model.money
-                            FirebaseComm.setMoney(model.name, money)
+                            FirebaseComm.setMoney(name, money)
 
                             val historyModel = HistoryModel(
                                 System.currentTimeMillis(),
-                                model.name,
+                                name,
                                 Constants.HISTORY_DEPOSIT,
                                 model.money,
                                 mapOf(),
@@ -126,14 +127,15 @@ import java.util.*
                          while (!mUserPrepared) {
                              delay(10)
                          }
-                         if (mUserList?.contains(model.name) == true) {
-                             val user = FromMap.toUserModel(mUserList!![model.name]!!)
+                         val name = mUserList?.containsName(model.name)
+                         if (name != null) {
+                             val user = FromMap.toUserModel(mUserList!![name]!!)
                              val money = user.money + model.money
-                             FirebaseComm.setMoney(model.name, money)
+                             FirebaseComm.setMoney(name, money)
 
                              val historyModel = HistoryModel(
                                  System.currentTimeMillis(),
-                                 model.name,
+                                 name,
                                  Constants.HISTORY_DEPOSIT,
                                  model.money,
                                  mapOf(),
@@ -201,5 +203,15 @@ import java.util.*
          val mAlarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
          mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.timeInMillis, sender)
          Log.e("DepositService", "setAlarmTimer")
+     }
+
+     private fun Map<String, Map<String, Any>>.containsName(name : String) : String? {
+        if(this.contains(name))
+            return name
+         for (pair in this.toList()) {
+             if (pair.second["extraName"] == name)
+                 return pair.first
+         }
+        return null
      }
 }

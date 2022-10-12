@@ -8,7 +8,8 @@ object FromMap {
     fun toUserModel(map : Map<String, Any>) : UserModel
             = UserModel(map["pin"] as String,
         (map["money"] as Long).toInt(),
-        map["member"] as String?)
+        map["member"] as String?,
+        map["extraName"] as String?,)
 
     fun toHistoryModel(map : Map<String, Any?>) : HistoryModel
             = HistoryModel(map["date"] as Long,

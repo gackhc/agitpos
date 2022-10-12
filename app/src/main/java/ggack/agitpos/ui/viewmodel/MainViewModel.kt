@@ -1,5 +1,6 @@
 package ggack.agitpos.ui.viewmodel
 
+import Singleton.isDuplicated
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
@@ -38,7 +39,16 @@ class MainViewModel : BaseViewModel() {
         val editText = EditText(context)
         val dlg = AlertDialog.Builder(context).setView(editText).setTitle("유저 추가").setPositiveButton("OK"
         ) { _, _ ->
-            addUser(editText.text.toString())
+            if(editText.text.toString().isNotEmpty()) {
+                if (liveUserData.value?.isDuplicated(
+                        editText.text.toString(),
+                        editText.text.toString()
+                    ) == true
+                )
+                    Toast.makeText(context, "이름이 중복됩니다", Toast.LENGTH_SHORT).show()
+                else
+                    addUser(editText.text.toString())
+            }
         }.setNegativeButton("Cancel", null)
         dlg.show()
     }

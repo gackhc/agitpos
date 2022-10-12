@@ -44,8 +44,9 @@ import ggack.agitpos.ui.adapter.HistoryAdapter
 import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.base.BaseActivity
 import ggack.agitpos.ui.viewmodel.LoginViewModel
-import ggack.agitpos.utils.SimpleDialog
+import ggack.agitpos.ui.view.dialog.SimpleDialog
 import ggack.agitpos.utils.Utils
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.Map
@@ -186,22 +187,18 @@ class LoginActivity : BaseActivity() {
             }
         }
         viewModel.liveHistory.observe(this) {
-            val keys = it?.keys?.sorted()
-            keys?.forEach { key ->
-                if(!historyKeys.contains(key)) {
-                    it[key]?.let { model ->
-                        if(mListHistory.size < 10) {
-                            mListHistory.add(model)
-                            mHistoryAdapter?.notifyItemInserted(mListHistory.lastIndex)
-                            binding.rvHistory.scrollToPosition(mListHistory.lastIndex)
-                        } else {
-                            mListHistory.removeAt(0)
-                            mListHistory.add(model)
-                            mHistoryAdapter?.notifyDataSetChanged()
-                            binding.rvHistory.scrollToPosition(mListHistory.lastIndex)
-                        }
+            val list = it?.values?.toList()?.sortedBy { it.date }?.reversed()
+            list?.let {
+                mListHistory.clear()
+                if(list.size < 10) {
+                    mListHistory.addAll(list)
+                } else {
+                    for(i in 0..9) {
+                        mListHistory.add(list[i])
                     }
                 }
+                mHistoryAdapter?.notifyDataSetChanged()
+                binding.rvHistory.scrollToPosition(mListHistory.lastIndex)
             }
         }
         viewModel.liveValidate.observe(this) {

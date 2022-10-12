@@ -1,20 +1,25 @@
 package ggack.agitpos.ui.view.fragment
 
+import Singleton.isDuplicated
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.databinding.FragmentUserListBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.UserAdapter
+import ggack.agitpos.ui.view.dialog.SimpleDialog
+import ggack.agitpos.ui.view.dialog.SimpleEditDialog
 import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.utils.SimpleListDialog
+import ggack.agitpos.ui.view.dialog.SimpleListDialog
 import ggack.agitpos.utils.Utils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -23,6 +28,8 @@ class UserListFragment : Fragment() {
     private var binding : FragmentUserListBinding? = null
     private var adapter : UserAdapter? = null
     private lateinit var viewModel : MainViewModel
+    var mDlgHistory : SimpleListDialog? = null
+    var currentSelected = ""
     var mapUserList = mapOf<String, Map<String, Any>>()
     var mapHistoryByName = mutableMapOf<String, MutableList<String>>()
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
@@ -58,8 +65,9 @@ class UserListFragment : Fragment() {
             it?.keys?.forEach { key ->
                 it[key]?.let {list ->
                     val newList = mutableListOf<String>()
+                    list.sortBy { it.date }
                     list.forEach { item ->
-                        val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("dd일 hh:mm:ss"))
+                        val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("yy.MM.dd일 HH:mm:ss"))
                         var text = "$date : [${item.kind}]"
                         if(item.money != 0)
                             text += " [금액 : ${item.money}]"
@@ -71,6 +79,11 @@ class UserListFragment : Fragment() {
                     }
                     mapHistoryByName[key] = newList
                 }
+                if(mDlgHistory?.isShowing() == true && currentSelected != "") mapHistoryByName[currentSelected]?.let { it1 ->
+                    mDlgHistory?.refreshList(
+                        it1
+                    )
+                }
             }
         }
     }
@@ -80,6 +93,7 @@ class UserListFragment : Fragment() {
         adapter = UserAdapter(requireContext(), mapUserList, object : ListListener {
             override fun onRemove(key: String, item: Any?) {
                 super.onRemove(key, item)
+                currentSelected = key
                 AlertDialog.Builder(requireContext())
                     .setMessage("[$key] 를 삭제합니까?")
                     .setPositiveButton("네") { _, _ ->
@@ -91,20 +105,47 @@ class UserListFragment : Fragment() {
 
             override fun onChange(key: String, item: Any?) {
                 super.onChange(key, item)
+                currentSelected = key
                 viewModel.popUpChangeMoney(requireContext(),key, (item as UserModel?)?.money?:0)
             }
 
             override fun onRecord(key: String, item: Any?) {
                 super.onRecord(key, item)
-                val dlg = mapHistoryByName[key]?.let { SimpleListDialog(requireContext(), it) {} }
-                dlg?.setListMargin(0)
-                dlg?.setListTextSize(10)
-                dlg?.show()
+                currentSelected = key
+                mDlgHistory = mapHistoryByName[key]?.let { SimpleListDialog(requireContext(), it) {} }
+                mDlgHistory?.setListMargin(0)
+                mDlgHistory?.setListTextSize(10)
+                mDlgHistory?.setOnRefreshListener {
+                    FirebaseComm.getPrevHistory()
+                    mDlgHistory?.setRefresh(false)
+                }
+                mDlgHistory?.show()
             }
 
             override fun onMember(key: String, item: Any?, b: Boolean) {
                 super.onMember(key, item, b)
+                currentSelected = key
                 FirebaseComm.setMembership(key, if(b) LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")) else "")
+            }
+
+            override fun onADD(key: String, item: Any?) {
+                super.onADD(key, item)
+                item as UserModel
+                val dlg = SimpleEditDialog(requireContext(), SimpleEditDialog.TYPE_ONE_BUTTON) {result, data ->
+                    if(data.isNotEmpty()) {
+                        if(data.isNotEmpty()) {
+                            if (mapUserList.isDuplicated(key, data))
+                                Toast.makeText(requireContext(), "이름이 중복됩니다", Toast.LENGTH_SHORT)
+                                    .show()
+                            else
+                                FirebaseComm.setExtraName(key, data)
+                        }
+                    }
+                }
+                dlg.setText("별도로 설정할 입금자명을 입력해주세요")
+                if(!item.extraName.isNullOrEmpty())
+                    dlg.setEditText(item.extraName?:"")
+                dlg.show()
             }
         })
         binding?.recyclerView?.adapter = adapter

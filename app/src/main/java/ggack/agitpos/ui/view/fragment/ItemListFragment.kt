@@ -13,7 +13,7 @@ import ggack.agitpos.databinding.FragmentItemsBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.UserAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.utils.SimpleListDialog
+import ggack.agitpos.ui.view.dialog.SimpleListDialog
 import ggack.agitpos.utils.Utils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -58,7 +58,7 @@ class ItemListFragment : Fragment() {
                 it[key]?.let {list ->
                     val newList = mutableListOf<String>()
                     list.forEach { item ->
-                        val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("dd일 hh:mm:ss"))
+                        val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("dd일 HH:mm:ss"))
                         var text = "$date : [${item.kind}]"
                         if(item.money != 0)
                             text += " [금액 : ${item.money}]"

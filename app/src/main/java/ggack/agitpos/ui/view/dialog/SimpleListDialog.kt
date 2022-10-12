@@ -1,4 +1,4 @@
-package ggack.agitpos.utils
+package ggack.agitpos.ui.view.dialog
 
 import android.app.Dialog
 import android.content.Context
@@ -8,10 +8,11 @@ import android.view.ViewGroup
 import android.view.Window
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import ggack.agitpos.databinding.DialogSimpleListBinding
 import ggack.agitpos.databinding.ItemSimpleListBinding
 
-class SimpleListDialog(val context: Context, val list : List<String>, val resultCallback : ResultCallback?) {
+class SimpleListDialog(val context: Context, var list : List<String>, val resultCallback : ResultCallback?) {
     var binding : DialogSimpleListBinding
     companion object{
         const val TYPE_ONE_BUTTON = 1
@@ -43,6 +44,18 @@ class SimpleListDialog(val context: Context, val list : List<String>, val result
         dlg.setCancelable(b)
     }
     fun isShowing() = dlg.isShowing
+
+    fun setOnRefreshListener(listener : SwipeRefreshLayout.OnRefreshListener) {
+        binding.swipeRefreshLayout.setOnRefreshListener(listener)
+    }
+    fun setRefresh(b : Boolean) {
+        binding.swipeRefreshLayout.isRefreshing = b
+    }
+    fun refreshList(newList : List<String>) {
+        list = newList
+        binding.rv.adapter?.notifyDataSetChanged()
+    }
+
     fun show(){
         binding.btnOK.setOnClickListener(onClickListener)
         dlg.show()

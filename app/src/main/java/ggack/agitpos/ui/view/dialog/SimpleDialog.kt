@@ -1,37 +1,42 @@
-package ggack.agitpos.utils
+package ggack.agitpos.ui.view.dialog
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.Window
-import android.view.inputmethod.InputMethodManager
-import ggack.agitpos.databinding.DialogSimpleEditBinding
+import ggack.agitpos.databinding.DialogSimpleBinding
 
-class SimpleEditDialog(val context: Context, val type : Int, val resultCallback : ResultCallback?) {
-    var binding : DialogSimpleEditBinding
+class SimpleDialog(val context: Context, val type : Int, val resultCallback : ResultCallback?) {
+    var binding : DialogSimpleBinding
     companion object{
         const val TYPE_ONE_BUTTON = 1
         const val TYPE_TWO_BUTTON = 2
-
-        const val RESULT_OK = 1
-        const val RESULT_CANCEL = 2
     }
     private var dlg : Dialog = Dialog(context)
+
     init{
         dlg.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        binding = DialogSimpleEditBinding.inflate(LayoutInflater.from(context))
+        binding = DialogSimpleBinding.inflate(LayoutInflater.from(context))
         dlg.setContentView(binding.root)
-    }
 
-    fun setText(str:String){
+        binding.tvSimple.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
+    }
+    fun setTitle(rid : Int) {
+        binding.tvTitle.setText(rid)
+        binding.tvTitle.visibility = View.VISIBLE
+    }
+    fun setText(str:String) {
         binding.tvSimple.text = str
     }
-
-    fun setEditText(str:String){
-        binding.editText.setText(str)
+    fun setText(rid:Int){
+        binding.tvSimple.setText(rid)
     }
-
+    fun setCancelable(b : Boolean) {
+        dlg.setCancelable(b)
+    }
+    fun isShowing() = dlg.isShowing
     fun show(){
         when(type){
             TYPE_ONE_BUTTON ->{
@@ -48,30 +53,41 @@ class SimpleEditDialog(val context: Context, val type : Int, val resultCallback 
         binding.btnOk.setOnClickListener(onClickListener)
         binding.btnCancel.setOnClickListener(onClickListener)
         binding.btnConfirm.setOnClickListener(onClickListener)
-        dlg.setCancelable(false)
         dlg.show()
     }
 
     fun dismiss(){
-        val imm: InputMethodManager? = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
-        imm?.hideSoftInputFromWindow(binding.editText.windowToken, 0)
         dlg.dismiss()
     }
 
     val onClickListener = View.OnClickListener{
         when(it){
             binding.btnOk, binding.btnConfirm->{
-                resultCallback?.onResult(RESULT_OK, binding.editText.text.toString())
                 dismiss()
+                resultCallback?.onResult(Activity.RESULT_OK)
             }
             binding.btnCancel->{
-                resultCallback?.onResult(RESULT_CANCEL, "")
                 dismiss()
+                resultCallback?.onResult(Activity.RESULT_CANCELED)
             }
         }
     }
 
-    fun interface ResultCallback{
-        fun onResult(result : Int, string : String)
+    fun setAlignment(alignment : Int){
+        binding.tvSimple.textAlignment = alignment
+    }
+
+    fun setCancelTxt(s : String) {
+        binding.btnCancel.text = s
+    }
+    fun setOKTxt(s : String) {
+        binding.btnOk.text = s
+    }
+    fun setConfirmTxt(s : String) {
+        binding.btnConfirm.text = s
+    }
+
+    fun interface ResultCallback {
+        fun onResult(result : Int)
     }
 }

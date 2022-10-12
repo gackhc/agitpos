@@ -12,7 +12,7 @@ import ggack.agitpos.ui.base.BaseActivity
 import ggack.agitpos.ui.view.fragment.MainClientFragment
 import ggack.agitpos.ui.view.fragment.MainMasterFragment
 import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.utils.SimpleDialog
+import ggack.agitpos.ui.view.dialog.SimpleDialog
 import ggack.agitpos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

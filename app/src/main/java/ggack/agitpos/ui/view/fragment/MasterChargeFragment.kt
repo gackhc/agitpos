@@ -27,9 +27,9 @@ import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.adapter.PaymentAdapter
 import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.utils.AddItemDialog
+import ggack.agitpos.ui.view.dialog.AddItemDialog
 import ggack.agitpos.utils.Constants
-import ggack.agitpos.utils.SimpleDialog
+import ggack.agitpos.ui.view.dialog.SimpleDialog
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime

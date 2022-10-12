@@ -11,7 +11,7 @@ import ggack.agitpos.data.model.networkmodel.AccountModel
 import ggack.agitpos.databinding.FragmentMainMasterBinding
 import ggack.agitpos.ui.view.activity.MainActivity
 import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.utils.AccountDialog
+import ggack.agitpos.ui.view.dialog.AccountDialog
 
 class MainMasterFragment : Fragment() {
     private var binding : FragmentMainMasterBinding? = null

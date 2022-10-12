@@ -1,4 +1,4 @@
-package ggack.agitpos.utils
+package ggack.agitpos.ui.view.dialog
 
 import android.app.Dialog
 import android.content.Context
@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.Window
 import android.view.inputmethod.InputMethodManager
-import ggack.agitpos.databinding.DialogAccountBinding
 import ggack.agitpos.databinding.DialogAddItemBinding
 
 class AddItemDialog(val context: Context, val resultCallback : ResultCallback?) {

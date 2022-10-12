@@ -1,4 +1,4 @@
-package ggack.agitpos.utils
+package ggack.agitpos.ui.view.dialog
 
 import android.app.Dialog
 import android.content.Context
