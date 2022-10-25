@@ -46,4 +46,32 @@
         android:visibility="visible"
         android:text = "마스터 결제"
         app:layout_constraintTop_toBottomOf="@id/btnQR"/>
+
+    <Button
+        android:id="@+id/btnStatistics"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:visibility="visible"
+        android:text = "결제 통계"
+        app:layout_constraintTop_toBottomOf="@id/btnCharge"/>
+
+
+    <Button
+        android:id="@+id/btnItemSetting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:visibility="visible"
+        android:text = "항목 설정"
+        app:layout_constraintTop_toBottomOf="@id/btnStatistics"/>
+
+    <Button
+        android:id="@+id/btnAutoStart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:visibility="visible"
+        android:text = "자동 재시작 해제"
+        app:layout_constraintTop_toBottomOf="@id/btnItemSetting"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

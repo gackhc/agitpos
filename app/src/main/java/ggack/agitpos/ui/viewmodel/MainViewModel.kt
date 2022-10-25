@@ -15,15 +15,18 @@ import androidx.lifecycle.Transformations
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.AccountModel
 import ggack.agitpos.data.model.networkmodel.HistoryModel
+import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.data.sms.SmsManager
 import ggack.agitpos.ui.base.BaseViewModel
+import ggack.agitpos.ui.view.dialog.AddItemDialog
 import ggack.agitpos.utils.CharSearcher
 import ggack.agitpos.utils.Permissions
 
 class MainViewModel : BaseViewModel() {
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveDeposits: LiveData<Map<String, Map<String, Any>>?>
+    lateinit var liveItems: LiveData<List<Map<String, Any>?>>
     lateinit var liveHistoryByName : LiveData<MutableMap<String, MutableList<HistoryModel>>?>
     lateinit var liveAccount : LiveData<AccountModel?>
 
@@ -32,6 +35,7 @@ class MainViewModel : BaseViewModel() {
     fun init() {
         liveUserData = Transformations.map(FirebaseComm.liveUserList){it}
         liveDeposits = Transformations.map(FirebaseComm.liveDeposits){it}
+        liveItems = Transformations.map(FirebaseComm.liveItemList){it}
         liveHistoryByName = Transformations.map(FirebaseComm.liveHistoryByName){it}
         liveAccount = Transformations.map(FirebaseComm.liveAccount){it}
     }
@@ -89,6 +93,25 @@ class MainViewModel : BaseViewModel() {
         }
         dlg.show()
     }
+    fun popUpItemChange(context : Context, item : ItemModel? = null, idx : Int) {
+        val dlg = AddItemDialog(context, object : AddItemDialog.ResultCallback {
+            override fun onResult(name: String, price: Int) {
+                addItem(ItemModel(name, price, 1, idx))
+            }
+
+            override fun onDelete() {
+                if (item != null) {
+                    removeItem(item)
+                }
+            }
+
+        })
+        item?.let {
+            dlg.setText(it.name, it.price)
+            dlg.binding.btnDelete.visibility = View.VISIBLE
+        }
+        dlg.show()
+    }
     fun addUser(userName : String) {
         FirebaseComm.addUser(userName)
     }
@@ -101,10 +124,25 @@ class MainViewModel : BaseViewModel() {
     fun getDeposits() {
         FirebaseComm.getDeposits()
     }
+    fun refreshItems() {
+        FirebaseComm.getItems()
+    }
     fun setMoney(name : String, money : Int) {
         FirebaseComm.setMoney(name, money)
     }
-
+    fun removeItem(model : ItemModel) {
+        FirebaseComm.removeItem(model)
+    }
+    fun addItem(model : ItemModel) {
+        FirebaseComm.addItem(model)
+    }
+    fun setItems(list : List<ItemModel>) {
+        val map = mutableMapOf<String, Map<String, Any>>()
+        for(i in 0 until list.lastIndex) {
+            map[list[i].idx.toString()] = list[i].getMap()
+        }
+        FirebaseComm.setItems(map)
+    }
     fun checkDeposits(context : Context) {
         if(Permissions.requestPermission(context, Manifest.permission.READ_SMS, 0, "")) {
             SmsManager.startCheck(context)

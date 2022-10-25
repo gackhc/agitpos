@@ -1,29 +1,31 @@
 package ggack.agitpos.ui.view.fragment
 
+import android.graphics.Canvas
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.networkmodel.UserModel
+import ggack.agitpos.data.model.networkmodel.FromMap
+import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.databinding.FragmentItemsBinding
 import ggack.agitpos.listener.ListListener
-import ggack.agitpos.ui.adapter.UserAdapter
+import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.ui.view.dialog.SimpleListDialog
-import ggack.agitpos.utils.Utils
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.util.*
 
 class ItemListFragment : Fragment() {
     private var binding : FragmentItemsBinding? = null
-    private var adapter : UserAdapter? = null
+    private var adapter : ItemAdapter? = null
     private lateinit var viewModel : MainViewModel
-    var mapUserList = mapOf<String, Map<String, Any>>()
-    var mapHistoryByName = mutableMapOf<String, MutableList<String>>()
+    var mListItems = mutableListOf<ItemModel>()
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentItemsBinding.inflate(inflater, container, false)
         return binding?.root
@@ -36,76 +38,116 @@ class ItemListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
-//        binding?.btnAddUser?.setOnClickListener {
-//            viewModel.popupAddUser(requireContext())
-//        }
         initObserver()
         initAdapter()
-        viewModel.refreshUser()
+        initViews()
+        viewModel.refreshItems()
     }
-
-    fun initObserver() {
-        viewModel.liveUserData.observe(viewLifecycleOwner) {
-            it?.let {
-                mapUserList = it
-                adapter?.map = it
-                adapter?.keys = it.keys.toList().sorted()
-                adapter?.notifyDataSetChanged()
-            }
+    fun initViews() {
+        binding?.btnMonthly?.setOnClickListener {
+            viewModel.addItem(ItemModel("월간 이용권", 40000, 1, if(mListItems.size <= 1) 1 else (mListItems[mListItems.lastIndex - 1].idx + 1)))
         }
-        viewModel.liveHistoryByName.observe(viewLifecycleOwner) {
-            it?.keys?.forEach { key ->
-                it[key]?.let {list ->
-                    val newList = mutableListOf<String>()
-                    list.forEach { item ->
-                        val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("dd일 HH:mm:ss"))
-                        var text = "$date : [${item.kind}]"
-                        if(item.money != 0)
-                            text += " [금액 : ${item.money}]"
-                        if(item.item?.keys != null && item.item?.keys?.isNotEmpty() == true)
-                            text += " ${item.item?.keys}"
-                        if(item.etc.isNotEmpty())
-                            text += " [기타 : ${item.etc}]"
-                        newList.add(text)
+    }
+    fun initObserver() {
+        viewModel.liveItems.observe(viewLifecycleOwner) {
+            it?.let {
+                mListItems.clear()
+                mListItems.addAll(FromMap.toItemModels(it))
+                mListItems.add(ItemModel("plusitem", 0, 0, 99999, -1))
+                binding?.rv?.adapter?.notifyDataSetChanged()
+
+                var b = true
+                for(item in mListItems) {
+                    if(item.name == "월간 이용권"){
+                        b  = false
+                        break
                     }
-                    mapHistoryByName[key] = newList
                 }
+                binding?.btnMonthly?.visibility = if(b) View.VISIBLE else View.GONE
             }
         }
     }
 
     fun initAdapter() {
-        //binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
-        adapter = UserAdapter(requireContext(), mapUserList, object : ListListener {
-            override fun onRemove(key: String, item: Any?) {
-                super.onRemove(key, item)
-                AlertDialog.Builder(requireContext())
-                    .setMessage("[$key] 를 삭제합니까?")
-                    .setPositiveButton("네") { _, _ ->
-                        viewModel.removeUser(key)
-                    }
-                    .setNegativeButton("아니오") { _, _ ->
-                    }.create().show()
+        binding?.rv?.layoutManager = GridLayoutManager(requireContext(), 4)
+        adapter = ItemAdapter(mListItems, object : ListListener {
+
+            override fun onClick(key: String, item: Any?) {
+                super.onClick(key, item)
+                viewModel.popUpItemChange(requireContext(),item as ItemModel, item.idx)
             }
 
-            override fun onChange(key: String, item: Any?) {
-                super.onChange(key, item)
-                viewModel.popUpChangeMoney(requireContext(),key, (item as UserModel?)?.money?:0)
-            }
-
-            override fun onRecord(key: String, item: Any?) {
-                super.onRecord(key, item)
-                val dlg = mapHistoryByName[key]?.let { SimpleListDialog(requireContext(), it) {} }
-                dlg?.setListMargin(0)
-                dlg?.setListTextSize(10)
-                dlg?.show()
-            }
-
-            override fun onMember(key: String, item: Any?, b: Boolean) {
-                super.onMember(key, item, b)
-                FirebaseComm.setMembership(key, if(b) LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")) else "")
+            override fun onADD(key: String, item: Any?) {
+                super.onADD(key, item)
+                viewModel.popUpItemChange(requireContext(), null, if(mListItems.size <= 1) 1 else (mListItems[mListItems.lastIndex - 1].idx + 1))
             }
         })
-        //binding?.recyclerView?.adapter = adapter
+        binding?.rv?.adapter = adapter
+        val itemTouchCallback = object : ItemTouchHelper.Callback() {
+            override fun getMovementFlags(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder
+            ): Int {
+                //어떤 방향으로 드래그, 스와이프 되었는지 알기 위해서 반드시 구현해야한다.
+                return makeFlag(
+                    ItemTouchHelper.ACTION_STATE_DRAG,
+                    ItemTouchHelper.DOWN or ItemTouchHelper.UP or ItemTouchHelper.START or ItemTouchHelper.END
+                )
+            }
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val from = viewHolder.adapterPosition
+                val to = target.adapterPosition
+                if (from == mListItems.lastIndex)
+                    return false
+                adapter?.notifyItemMoved(from, to)
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onMoved(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                from: Int,
+                target: RecyclerView.ViewHolder,
+                to: Int,
+                x: Int,
+                y: Int
+            ) {
+                if(from > to) {
+                    var startIdx = if (to == 0) 1 else mListItems[to - 1].idx + 1
+                    mListItems[from].idx = startIdx++
+                    for (i in to until from) {
+                        mListItems[i].idx = startIdx++
+                    }
+                } else {
+                    var startIdx = if (to == 0) 1 else mListItems[from - 1].idx + 1
+                    for (i in from + 1 .. to) {
+                        mListItems[i].idx = startIdx++
+                    }
+                    mListItems[from].idx = startIdx++
+
+                }
+                Log.e("move", mListItems.toString())
+                mListItems.sortBy { it.idx }
+                super.onMoved(recyclerView, viewHolder, from, target, to, x, y)
+            }
+
+            override fun clearView(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder
+            ) {
+                viewModel.setItems(mListItems)
+                super.clearView(recyclerView, viewHolder)
+            }
+        }
+
+        ItemTouchHelper(itemTouchCallback).attachToRecyclerView(binding?.rv)
     }
 }

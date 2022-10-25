@@ -93,9 +93,9 @@ object Utils {
         edit.putInt(key, v)
         edit.apply()
     }
-    fun getPrefBoolean(context: Context, key : String) : Boolean {
+    fun getPrefBoolean(context: Context, key : String, default : Boolean = false) : Boolean {
         val pref = context.getSharedPreferences("agitpos", Context.MODE_PRIVATE)
-        return pref.getBoolean(key, false)
+        return pref.getBoolean(key, default)
     }
     fun setPref(context: Context, key : String, v : Boolean) {
         val pref = context.getSharedPreferences("agitpos", Context.MODE_PRIVATE)

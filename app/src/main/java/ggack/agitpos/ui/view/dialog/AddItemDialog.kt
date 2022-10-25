@@ -20,10 +20,16 @@ class AddItemDialog(val context: Context, val resultCallback : ResultCallback?) 
     fun setText(str:String){
         binding.tvSimple.text = str
     }
+    fun setText(name : String, price : Int) {
+        binding.editTextName.setText(name)
+        binding.editTextPrice.setText(price.toString())
+    }
 
     fun show(){
+        binding.btnDelete.setOnClickListener(onClickListener)
         binding.btnConfirm.setOnClickListener(onClickListener)
-        dlg.setCancelable(false)
+        binding.btnCancel.setOnClickListener(onClickListener)
+        dlg.setCancelable(true)
         dlg.show()
     }
 
@@ -41,10 +47,18 @@ class AddItemDialog(val context: Context, val resultCallback : ResultCallback?) 
                     binding.editTextPrice.text.toString().toInt())
                 dismiss()
             }
+            binding.btnDelete->{
+                resultCallback?.onDelete()
+                dismiss()
+            }
+            binding.btnCancel->{
+                dismiss()
+            }
         }
     }
 
-    fun interface ResultCallback{
+    interface ResultCallback{
         fun onResult(name : String, price : Int)
+        fun onDelete()
     }
 }

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
+import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.data.model.networkmodel.UserModel
@@ -153,6 +154,20 @@ class MainClientFragment : Fragment() {
                     binding?.tvName?.setTextColor(requireContext().getColor(R.color.black))
                 }
                 binding?.tvPoint?.text = "${user.money} pt"
+            }
+        }
+        viewModel.liveItems.observe(viewLifecycleOwner) {
+            it?.let {
+                mListItems.clear()
+                mListItems.addAll(FromMap.toItemModels(it))
+                var n = -1
+                for((i, item) in mListItems.withIndex()) {
+                    if (item.name == "월간 회원권")
+                        n = i
+                }
+                if(n >= 0 && LocalDateTime.now().dayOfMonth > 15)
+                    mListItems.removeAt(n)
+                binding?.rvItems?.adapter?.notifyDataSetChanged()
             }
         }
     }

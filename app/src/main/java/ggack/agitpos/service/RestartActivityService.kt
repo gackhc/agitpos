@@ -1,6 +1,5 @@
 package ggack.agitpos.service
 
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.Handler
@@ -15,7 +14,7 @@ class RestartActivityService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Handler(mainLooper).postDelayed({
-            val restart = Utils.getPrefBoolean(this, "restart")
+            val restart = Utils.getPrefBoolean(this, "restart") && Utils.getPrefBoolean(this, "settingRestart", true)
             if(restart && Utils.isAppIsInBackground(this)) {
                 val i = Intent(applicationContext, LoginActivity::class.java)
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

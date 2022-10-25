@@ -12,11 +12,13 @@ import ggack.agitpos.databinding.FragmentMainMasterBinding
 import ggack.agitpos.ui.view.activity.MainActivity
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.ui.view.dialog.AccountDialog
+import ggack.agitpos.utils.Utils
 
 class MainMasterFragment : Fragment() {
     private var binding : FragmentMainMasterBinding? = null
     private lateinit var viewModel : MainViewModel
     private var account : AccountModel? = null
+    var restart = false
 
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMainMasterBinding.inflate(inflater, container, false)
@@ -57,6 +59,26 @@ class MainMasterFragment : Fragment() {
         }
         binding?.btnCharge?.setOnClickListener {
             (activity as MainActivity).addFragment(MasterChargeFragment())
+        }
+        binding?.btnStatistics?.setOnClickListener {
+            (activity as MainActivity).addFragment(StatisticsFragment())
+        }
+        binding?.btnItemSetting?.setOnClickListener {
+            (activity as MainActivity).addFragment(ItemListFragment())
+        }
+
+        restart = Utils.getPrefBoolean(requireContext(), "settingRestart", true)
+        if(restart)
+            binding?.btnAutoStart?.setText("자동 재시작 해제")
+        else
+            binding?.btnAutoStart?.setText("자동 재시작 설정")
+        binding?.btnAutoStart?.setOnClickListener {
+            restart = !restart
+            Utils.setPref(requireContext(), "settingRestart", restart)
+            if(restart)
+                binding?.btnAutoStart?.setText("자동 재시작 해제")
+            else
+                binding?.btnAutoStart?.setText("자동 재시작 설정")
         }
     }
 }

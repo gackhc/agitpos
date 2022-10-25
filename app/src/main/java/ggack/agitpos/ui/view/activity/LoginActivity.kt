@@ -1,9 +1,7 @@
 package ggack.agitpos.ui.view.activity
 
 import Singleton
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -16,9 +14,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -35,6 +31,7 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import ggack.agitpos.R
+import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.databinding.ActivityLoginBinding
@@ -43,20 +40,12 @@ import ggack.agitpos.service.RestartService
 import ggack.agitpos.ui.adapter.HistoryAdapter
 import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.base.BaseActivity
-import ggack.agitpos.ui.viewmodel.LoginViewModel
 import ggack.agitpos.ui.view.dialog.SimpleDialog
+import ggack.agitpos.ui.viewmodel.LoginViewModel
 import ggack.agitpos.utils.Utils
-import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.collections.Map
-import kotlin.collections.forEach
-import kotlin.collections.hashMapOf
-import kotlin.collections.lastIndex
-import kotlin.collections.mutableListOf
 import kotlin.collections.set
-import kotlin.collections.sorted
-import kotlin.collections.toList
 import kotlin.concurrent.timer
 
 
@@ -129,13 +118,7 @@ class LoginActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         Utils.setPref(this, "restart", false)
-        val permissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS)
-        val permissionCheck =
-            ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) + ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, permissions, 1)
-            return
-        } else if(!Settings.canDrawOverlays(this)) {
+        if(!Settings.canDrawOverlays(this)) {
             val intent = Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:$packageName")
@@ -331,6 +314,7 @@ class LoginActivity : BaseActivity() {
                         val model = FromMap.toUserModel(it)
                         if (s.toString() == model.pin) {
                             Toast.makeText(this@LoginActivity, "로그인 성공", Toast.LENGTH_SHORT).show()
+                            FirebaseComm.getItems()
 
                             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                             imm.hideSoftInputFromWindow(currentFocus?.windowToken,0)

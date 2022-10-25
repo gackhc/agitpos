@@ -15,11 +15,12 @@ object FirebaseComm {
     private lateinit var mDatabase : DatabaseReference
     private var mID : String? = null
     private lateinit var mValidate : LocalDate
+    val liveItemList = MutableLiveData<List<Map<String, Any>?>>(null)
     val liveUserList = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>?>(null)
     val liveHistory = MutableLiveData<MutableMap<String, HistoryModel>?>(null)
     val liveHistoryStatistics = MutableLiveData<MutableMap<String, HistoryModel>?>(null)
-    val liveValidate = MutableLiveData<Boolean>(true)
+    val liveValidate = MutableLiveData(true)
     val liveAccount = MutableLiveData<AccountModel?>(null)
     val liveHistoryByName = MutableLiveData<MutableMap<String, MutableList<HistoryModel>>?>(null)
     fun init() {
@@ -119,6 +120,52 @@ object FirebaseComm {
             }
         }
     }
+    fun getItems() {
+        mID?.let { it ->
+            mDatabase.child(it).child("items").get().addOnSuccessListener { data ->
+                val value = data.value
+                if (value is HashMap<*, *>) {
+                    liveItemList.postValue(value.toList() as List<Map<String, Any>?>)
+                }
+                else if (value is ArrayList<*>) {
+                    liveItemList.postValue(value.toList() as List<Map<String, Any>?>)
+                } else {
+                    liveItemList.postValue(listOf())
+                }
+                Log.e(TAG, value.toString())
+            }.addOnFailureListener {
+                Log.e(TAG, "Error getDeposits", it)
+            }
+        }
+    }
+    fun setItems(map : Map<String, Map<String, Any>>) {
+        mID?.let { it ->
+            mDatabase.child(it).child("items").setValue(map).addOnSuccessListener {
+                getItems()
+            }.addOnFailureListener {
+                Log.e(TAG, "Error getting data", it)
+            }
+        }
+    }
+    fun addItem(model : ItemModel) {
+        mID?.let { it ->
+            mDatabase.child(it).child("items").child(model.idx.toString()).setValue(model.getMap()).addOnSuccessListener {
+                getItems()
+            }.addOnFailureListener {
+                Log.e(TAG, "Error getting data", it)
+            }
+        }
+    }
+    fun removeItem(model : ItemModel) {
+        mID?.let { it ->
+            mDatabase.child(it).child("items").child((model.idx).toString()).removeValue().addOnSuccessListener {
+                Log.e(TAG, "add success ${model.name}")
+                getItems()
+            }.addOnFailureListener {
+                Log.e(TAG, "Error getting data", it)
+            }
+        }
+    }
     fun removeDepositItem(date:String) {
         mID?.let { it ->
             mDatabase.child(it).child("deposits").child(date).removeValue().addOnSuccessListener {
@@ -184,23 +231,6 @@ object FirebaseComm {
             mDatabase.child(it).child("history").child(month).child(datetime).setValue(historyModel.getMap())
         }
     }
-    fun getHistoryToHistory(month : String) { // DateTimeFormatter.ofPattern("yyyyMM")
-        mID?.let { it ->
-            mDatabase.child(it).child("history").child(month).get().addOnSuccessListener { snapshot ->
-                val children = snapshot.children.sortedBy { it.key }
-                val map : MutableMap<String, HistoryModel> = hashMapOf()
-                children.forEach {
-                    it.key?.let {key ->
-                        FromMap.toHistoryModel(it.value as Map<String, Any?>).let { model ->
-                            map[key] = model
-                        }
-                    }
-                }
-                liveHistoryStatistics.postValue(map)
-                Log.e("debug", map.toString())
-            }
-        }
-    }
 
     var searchHistoryMonth = LocalDate.now()
     fun getPrevHistory() { // DateTimeFormatter.ofPattern("yyyyMM")
@@ -257,6 +287,7 @@ object FirebaseComm {
             }
         }
     }
+
     private val historyListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             val children = snapshot.children.sortedBy { it.key }

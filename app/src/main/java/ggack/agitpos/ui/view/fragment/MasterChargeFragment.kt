@@ -45,10 +45,10 @@ class MasterChargeFragment : Fragment() {
     private var mUserName = ""
     private var mUser : UserModel? = null
     private var mUserNameAdapter : UserNameAdapter? = null
-    private val mListItems =
+    private var mListItems =
         mutableListOf(
             ItemModel("일일 이용권", 6000, 1),
-            ItemModel("월간 이용권", 40000, 1),
+            ItemModel("'월간 이용권", 40000, 1),
             ItemModel("캔음료", 1300, 1),
             ItemModel("라면", 2000, 1),
             ItemModel("고급라면", 2500, 1),
@@ -158,12 +158,19 @@ class MasterChargeFragment : Fragment() {
             }
         }
         binding?.cvAdd?.setOnClickListener {
-            val dlg = AddItemDialog(requireContext()) { name, price ->
-                if(!name.isNullOrEmpty()) {
-                    mListItems.add(ItemModel(name, price, 1))
-                    binding?.rvItems?.adapter?.notifyItemInserted(mListItems.lastIndex)
+            val dlg = AddItemDialog(requireContext(), object: AddItemDialog.ResultCallback{
+                override fun onResult(name: String, price: Int) {
+                    if(!name.isNullOrEmpty()) {
+                        mListItems.add(ItemModel(name, price, 1))
+                        binding?.rvItems?.adapter?.notifyItemInserted(mListItems.lastIndex)
+                    }
                 }
-            }
+
+                override fun onDelete() {
+                    TODO("Not yet implemented")
+                }
+
+            })
             dlg.setText("추가할 항목을 입력해주세요")
             dlg.show()
         }
@@ -177,6 +184,13 @@ class MasterChargeFragment : Fragment() {
                 mUserNameAdapter?.keys = it.keys.toList().sorted()
                 mUserNameAdapter?.notifyDataSetChanged()
                 setCurrentUser(mUserName)
+            }
+        }
+        viewModel.liveItems.observe(viewLifecycleOwner) {
+            it?.let {
+                mListItems.clear()
+                mListItems.addAll(FromMap.toItemModels(it))
+                binding?.rvItems?.adapter?.notifyDataSetChanged()
             }
         }
     }

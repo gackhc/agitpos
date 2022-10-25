@@ -6,11 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.StatisticsItemModel
 import ggack.agitpos.data.model.StatisticsModel
+import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.HistoryModel
+import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.databinding.FragmentMasterStatisticsBinding
+import ggack.agitpos.ui.adapter.StatisticsDailyAdapter
+import ggack.agitpos.ui.adapter.StatisticsItemAdapter
+import ggack.agitpos.ui.adapter.StatisticsMonthAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Utils
 import java.time.format.DateTimeFormatter
@@ -18,10 +24,10 @@ import java.time.format.DateTimeFormatter
 class StatisticsFragment : Fragment() {
     private var binding : FragmentMasterStatisticsBinding? = null
     private lateinit var viewModel : MainViewModel
-    private val mapMonthData : MutableMap<String, StatisticsModel> = hashMapOf() // key : month
-    private val mapDateData : MutableMap<String, MutableMap<String, StatisticsModel>> = hashMapOf() // month , date
-    private val mapItemData : MutableMap<String, MutableMap<String, Int>> = hashMapOf()  // key : Date
-
+    private val listMonthData : MutableList<StatisticsModel> = mutableListOf()
+    private val listDateData : MutableList<StatisticsModel> = mutableListOf()
+    private val listItemData : MutableList<StatisticsItemModel> = mutableListOf()
+    var currentSel = 0
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMasterStatisticsBinding.inflate(inflater, container, false)
         return binding?.root
@@ -36,75 +42,109 @@ class StatisticsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         initObserver()
-        initButtons()
         initViews()
-    }
-    private fun initButtons() {
 
+        currentSel = 0
+        binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
+        binding?.recyclerView?.adapter = StatisticsDailyAdapter(listDateData)
     }
     private fun initViews() {
-
+        binding?.swipeRefreshLayout?.setOnRefreshListener {
+            FirebaseComm.getPrevHistory()
+            binding?.swipeRefreshLayout?.isRefreshing = false
+        }
+        binding?.btnDay?.setOnClickListener {
+            currentSel = 0
+            binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
+            binding?.recyclerView?.adapter = StatisticsDailyAdapter(listDateData)
+        }
+        binding?.btnMonth?.setOnClickListener {
+            currentSel = 1
+            binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
+            binding?.recyclerView?.adapter = StatisticsMonthAdapter(listMonthData)
+        }
+        binding?.btnItem?.setOnClickListener {
+            currentSel = 2
+            binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
+            binding?.recyclerView?.adapter = StatisticsItemAdapter(listItemData)
+        }
     }
 
     private fun initObserver() {
-        FirebaseComm.liveHistoryStatistics.observe(viewLifecycleOwner) {
-
+        FirebaseComm.liveHistory.observe(viewLifecycleOwner) {
+            it?.let {
+                setDateData(it)
+                setMonthData(it)
+                setItemData(it)
+                binding?.recyclerView?.adapter?.notifyDataSetChanged()
+            }
         }
     }
     fun setMonthData(data : Map<String, HistoryModel>) {
-        var moneyDeposit = 0
-        var moneyPayment = 0
-        var month = ""
+        val map : MutableMap<String, StatisticsModel> = hashMapOf()
         data.forEach {
             val dateTime = Utils.getDate(it.value.date)
             val kind = it.value.kind
             val money = it.value.money
-            if(month == "")
-                month = dateTime.format(DateTimeFormatter.ofPattern("yyyyMM"))
+            val strMonth = dateTime.format(DateTimeFormatter.ofPattern("yyyyMM"))
+            val month = dateTime.toLocalDate()
+            if(!map.containsKey(strMonth))
+                map[strMonth] = StatisticsModel(month, 0, 0)
             when(kind) {
-                "결제" -> moneyPayment += money
-                "입금" -> moneyDeposit += money
+                "입금" -> map[strMonth]!!.deposit += money
+                "결제" -> map[strMonth]!!.payment += money
             }
         }
-        mapMonthData[month] = StatisticsModel(moneyDeposit, moneyPayment)
+        listMonthData.clear()
+        listMonthData.addAll(map.values.toList().sortedBy { it.date })
     }
     fun setDateData(data : Map<String, HistoryModel>) {
-        val map : MutableMap<String, MutableMap<String, StatisticsModel>> = hashMapOf()
+        val map : MutableMap<String, StatisticsModel> = hashMapOf()
         data.forEach {
             val dateTime = Utils.getDate(it.value.date)
             val kind = it.value.kind
             val money = it.value.money
-            val month = dateTime.format(DateTimeFormatter.ofPattern("yyyyMM"))
-            val date = dateTime.format(DateTimeFormatter.ofPattern("dd"))
-            if(map[month] == null) map[month] = hashMapOf()
-            if(map[month]!![date] == null) map[month]!![date] = StatisticsModel(0,0)
+            val strDate = dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+            val date = dateTime.toLocalDate()
+            if(!map.containsKey(strDate))
+                map[strDate] = StatisticsModel(date, 0, 0)
             when(kind) {
-                "결제" -> map[month]!![date]!!.payment += money
-                "입금" -> map[month]!![date]!!.deposit += money
+                "입금" -> map[strDate]!!.deposit += money
+                "결제" -> map[strDate]!!.payment += money
             }
         }
-        map.forEach {
-            mapDateData[it.key] = map[it.key]!!
-        }
+        listDateData.clear()
+        listDateData.addAll(map.values.toList().sortedBy { it.date })
     }
     fun setItemData(data : Map<String, HistoryModel>) {
-        val map : MutableMap<String, MutableMap<String, Int>> = hashMapOf()
+        val map : MutableMap<String, StatisticsItemModel> = hashMapOf()
         data.forEach {
             val dateTime = Utils.getDate(it.value.date)
-            val kind = it.value.kind
-            val money = it.value.money
-            val month = dateTime.format(DateTimeFormatter.ofPattern("yyyyMM"))
-            val date = dateTime.format(DateTimeFormatter.ofPattern("dd"))
-            if(map[month] == null) map[month] = hashMapOf()
-            if(kind == "결제") {
-                it.value.item?.forEach {
-                    if(map[month]!![it.key] == null) map[month]!![it.key] = 0
-                    map[month]!![it.key]?.plus(1)
+            val items = FromMap.toItemModels(it.value.item?: hashMapOf())
+            val strMonth = dateTime.format(DateTimeFormatter.ofPattern("yyyyMM"))
+            val month = dateTime.toLocalDate()
+            if(!map.containsKey(strMonth))
+                map[strMonth] = StatisticsItemModel(month, mutableListOf(), 0)
+            val list = map[strMonth]?.items?.toMutableList()?: mutableListOf()
+            items.forEach {model ->
+                val i = list.contains(model.name)
+                if(i == -1) {
+                    map[strMonth]?.items?.add(model)
+                } else {
+                    map[strMonth]?.items?.get(i)!!.cnt += model.cnt
+                    map[strMonth]?.items?.get(i)!!.price += model.price
                 }
             }
         }
-        map.forEach {
-            mapItemData[it.key] = map[it.key]!!
+        listItemData.clear()
+        listItemData.addAll(map.values.toList().sortedBy { it.date })
+    }
+
+    fun MutableList<ItemModel>.contains(key : String) : Int {
+        for((i, model) in this.withIndex()) {
+            if(model.name == key)
+                return i
         }
+        return -1
     }
 }

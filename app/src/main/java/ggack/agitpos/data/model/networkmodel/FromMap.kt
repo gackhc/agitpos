@@ -19,9 +19,35 @@ object FromMap {
         map["item"] as Map<String, Map<String, Any>>?,
         map["etc"] as String)
 
-
     fun toAccountModel(map : Map<String, Any?>) : AccountModel
             = AccountModel((map["account"] as String?)?:"",
         (map["name"] as String?)?:"",
         (map["kakaopay"] as String?)?:"",)
+
+    fun toItemModels(array : List<Map<String, Any>?>) : List<ItemModel> {
+        val list = mutableListOf<ItemModel>()
+        for((i, m) in array.withIndex()) {
+            if(m != null) {
+                list.add(
+                    ItemModel(
+                        m["name"] as String,
+                    (m["price"] as Long).toInt() * (m["cnt"] as Long).toInt(),
+                        (m["cnt"] as Long).toInt(),
+                        i
+                    ))
+            }
+        }
+        return list
+    }
+    fun toItemModels(map : Map<String, Map<String, Any>>) : List<ItemModel> {
+        val list = mutableListOf<ItemModel>()
+        map.toSortedMap().forEach { (t, u) ->
+            list.add(ItemModel(
+                u["name"] as String,
+                (u["price"] as Long).toInt() * (u["cnt"] as Long).toInt(),
+                (u["cnt"] as Long).toInt()
+            ))
+        }
+        return list
+    }
 }
