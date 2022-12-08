@@ -13,9 +13,12 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.HistoryModel
@@ -34,10 +37,13 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MasterChargeFragment : Fragment() {
+    @Inject lateinit var firebaseComm: FirebaseComm
     private var binding : FragmentMainMasterChargeBinding? = null
-    private lateinit var viewModel : MainViewModel
+    private val viewModel by activityViewModels<MainViewModel>()
     private var mListPayment = mutableListOf<ItemModel>()
     private var mTime = LocalTime.of(0,1,0)
     private var mTotal = 0
@@ -71,7 +77,6 @@ class MasterChargeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 //        binding?.tvName?.setOnClickListener {
 //            (activity as MainActivity).startFragment(UserListFragment())
 //        }
@@ -96,12 +101,12 @@ class MasterChargeFragment : Fragment() {
                                     map[model.name] = model.getMap()
                                 }
                                 if (map.keys.contains("월간 이용권"))
-                                    FirebaseComm.setMembership(
+                                    firebaseComm.setMembership(
                                         mUserName,
                                         LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"))
                                     )
-                                FirebaseComm.setMoney(mUserName, user.money - mTotal)
-                                FirebaseComm.addHistory(
+                                firebaseComm.setMoney(mUserName, user.money - mTotal)
+                                firebaseComm.addHistory(
                                     HistoryModel(
                                         Instant.now().toEpochMilli(),
                                         mUserName,

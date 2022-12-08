@@ -8,8 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.DepositModel
 import ggack.agitpos.data.model.networkmodel.FromMap
@@ -25,11 +28,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class DepositFragment : Fragment() {
+    @Inject lateinit var firebaseComm: FirebaseComm
     private var binding : FragmentListBinding? = null
     private var adapter : DepositAdapter? = null
-    private lateinit var viewModel : MainViewModel
+    private val viewModel by activityViewModels<MainViewModel>()
     private var mapDeposit = mapOf<String, Map<String, Any>>()
     private var mMapName : Map<String, Map<String, Any>> = HashMap()
     private var mUserPrepared = false
@@ -44,7 +50,6 @@ class DepositFragment : Fragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         initObserver()
         initAdapter()
         viewModel.getDeposits()
@@ -96,7 +101,7 @@ class DepositFragment : Fragment() {
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 else
-                                    FirebaseComm.addUser(model.name)
+                                    firebaseComm.addUser(model.name)
                             }
                         }
                     }
@@ -112,7 +117,7 @@ class DepositFragment : Fragment() {
                     when (it) {
                         Activity.RESULT_OK -> {
                             mUserPrepared = false
-                            FirebaseComm.removeDepositItem(model.date.toString())
+                            firebaseComm.removeDepositItem(model.date.toString())
                         }
                     }
                 }
@@ -154,7 +159,7 @@ class DepositFragment : Fragment() {
                         if (mMapName.isDuplicated(key, name))
                             Toast.makeText(requireContext(), "이름이 중복됩니다", Toast.LENGTH_SHORT).show()
                         else
-                            FirebaseComm.setExtraName(key, name)
+                            firebaseComm.setExtraName(key, name)
                     }
                 }
             }
@@ -165,8 +170,8 @@ class DepositFragment : Fragment() {
 
     fun setData(key : String, name : String, model : DepositModel) {
         val user = FromMap.toUserModel(mMapName[name]!!)
-        FirebaseComm.setMoney(name, model.money + user.money)
-        FirebaseComm.addHistory(
+        firebaseComm.setMoney(name, model.money + user.money)
+        firebaseComm.addHistory(
             HistoryModel(
             model.date,
             name,
@@ -176,7 +181,7 @@ class DepositFragment : Fragment() {
             model.name
         )
         )
-        FirebaseComm.removeDepositItem(key)
+        firebaseComm.removeDepositItem(key)
         val pos = adapter?.keys?.indexOf(key)
         pos?.let{
             adapter?.keys?.removeAt(pos)

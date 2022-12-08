@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.databinding.ActivityMainBinding
 import ggack.agitpos.ui.base.BaseActivity
@@ -13,14 +14,16 @@ import ggack.agitpos.ui.view.fragment.MainClientFragment
 import ggack.agitpos.ui.view.fragment.MainMasterFragment
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.ui.view.dialog.SimpleDialog
+import ggack.agitpos.ui.viewmodel.LoginViewModel
 import ggack.agitpos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : BaseActivity() {
-    private val viewModel : MainViewModel by viewModels()
+    private val viewModel by viewModels<MainViewModel>()
     private lateinit var binding : ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

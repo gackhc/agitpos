@@ -8,9 +8,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.databinding.FragmentUserListBinding
@@ -23,11 +26,15 @@ import ggack.agitpos.ui.view.dialog.SimpleListDialog
 import ggack.agitpos.utils.Utils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class UserListFragment : Fragment() {
+    @Inject
+    lateinit var firebaseComm: FirebaseComm
     private var binding : FragmentUserListBinding? = null
     private var adapter : UserAdapter? = null
-    private lateinit var viewModel : MainViewModel
+    private val viewModel by activityViewModels<MainViewModel>()
     var mDlgHistory : SimpleListDialog? = null
     var currentSelected = ""
     var mapUserList = mapOf<String, Map<String, Any>>()
@@ -43,7 +50,6 @@ class UserListFragment : Fragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         binding?.btnAddUser?.setOnClickListener {
             viewModel.popupAddUser(requireContext())
         }
@@ -116,7 +122,7 @@ class UserListFragment : Fragment() {
                 mDlgHistory?.setListMargin(0)
                 mDlgHistory?.setListTextSize(10)
                 mDlgHistory?.setOnRefreshListener {
-                    FirebaseComm.getPrevHistory()
+                    firebaseComm.getPrevHistory()
                     mDlgHistory?.setRefresh(false)
                 }
                 mDlgHistory?.show()
@@ -125,7 +131,7 @@ class UserListFragment : Fragment() {
             override fun onMember(key: String, item: Any?, b: Boolean) {
                 super.onMember(key, item, b)
                 currentSelected = key
-                FirebaseComm.setMembership(key, if(b) LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")) else "")
+                firebaseComm.setMembership(key, if(b) LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")) else "")
             }
 
             override fun onADD(key: String, item: Any?) {
@@ -138,7 +144,7 @@ class UserListFragment : Fragment() {
                                 Toast.makeText(requireContext(), "이름이 중복됩니다", Toast.LENGTH_SHORT)
                                     .show()
                             else
-                                FirebaseComm.setExtraName(key, data)
+                                firebaseComm.setExtraName(key, data)
                         }
                     }
                 }

@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -30,6 +31,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.journeyapps.barcodescanner.BarcodeEncoder
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.FromMap
@@ -42,15 +44,19 @@ import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.base.BaseActivity
 import ggack.agitpos.ui.view.dialog.SimpleDialog
 import ggack.agitpos.ui.viewmodel.LoginViewModel
+import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Utils
 import java.util.*
+import javax.inject.Inject
 import kotlin.collections.HashMap
 import kotlin.collections.set
 import kotlin.concurrent.timer
 
-
+@AndroidEntryPoint
 class LoginActivity : BaseActivity() {
-    private val viewModel : LoginViewModel by viewModels()
+    @Inject
+    lateinit var firebaseComm: FirebaseComm
+    private val viewModel by viewModels<LoginViewModel>()
     private lateinit var binding : ActivityLoginBinding
 
     private lateinit var mGoogleClient : GoogleSignInClient
@@ -314,7 +320,7 @@ class LoginActivity : BaseActivity() {
                         val model = FromMap.toUserModel(it)
                         if (s.toString() == model.pin) {
                             Toast.makeText(this@LoginActivity, "로그인 성공", Toast.LENGTH_SHORT).show()
-                            FirebaseComm.getItems()
+                            firebaseComm.getItems()
 
                             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                             imm.hideSoftInputFromWindow(currentFocus?.windowToken,0)

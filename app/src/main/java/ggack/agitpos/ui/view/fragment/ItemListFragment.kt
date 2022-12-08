@@ -8,10 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.ItemModel
@@ -21,10 +24,11 @@ import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import java.util.*
 
+@AndroidEntryPoint
 class ItemListFragment : Fragment() {
     private var binding : FragmentItemsBinding? = null
     private var adapter : ItemAdapter? = null
-    private lateinit var viewModel : MainViewModel
+    private val viewModel by activityViewModels<MainViewModel>()
     var mListItems = mutableListOf<ItemModel>()
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentItemsBinding.inflate(inflater, container, false)
@@ -37,7 +41,6 @@ class ItemListFragment : Fragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         initObserver()
         initAdapter()
         initViews()

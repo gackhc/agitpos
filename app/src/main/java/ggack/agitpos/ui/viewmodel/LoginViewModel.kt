@@ -3,28 +3,31 @@ package ggack.agitpos.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.AccountModel
 import ggack.agitpos.data.model.networkmodel.HistoryModel
-import ggack.agitpos.ui.base.BaseViewModel
 import ggack.agitpos.utils.CharSearcher
+import javax.inject.Inject
 
-class LoginViewModel : BaseViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm) : ViewModel() {
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveHistory : LiveData<MutableMap<String, HistoryModel>?>
     lateinit var liveValidate : LiveData<Boolean>
     lateinit var liveAccount : LiveData<AccountModel?>
     fun init() {
-        liveUserData = Transformations.map(FirebaseComm.liveUserList) {
+        liveUserData = Transformations.map(firebaseComm.liveUserList) {
             it
         }
-        liveHistory = Transformations.map(FirebaseComm.liveHistory) {
+        liveHistory = Transformations.map(firebaseComm.liveHistory) {
             it
         }
-        liveValidate = Transformations.map(FirebaseComm.liveValidate) {
+        liveValidate = Transformations.map(firebaseComm.liveValidate) {
             it
         }
-        liveAccount = Transformations.map(FirebaseComm.liveAccount) {
+        liveAccount = Transformations.map(firebaseComm.liveAccount) {
             it
         }
     }
@@ -49,16 +52,16 @@ class LoginViewModel : BaseViewModel() {
     }
 
     fun refreshUser() {
-        FirebaseComm.getUsers()
+        firebaseComm.getUsers()
     }
 
     fun firebaseInit(context : Context, email : String) {
-        FirebaseComm.init()
-        FirebaseComm.setID(context, email)
-        FirebaseComm.getAccount(context)
+        firebaseComm.init()
+        firebaseComm.setID(context, email)
+        firebaseComm.getAccount(context)
     }
 
     fun firebaseValidate() {
-        FirebaseComm.checkValidate()
+        firebaseComm.checkValidate()
     }
 }

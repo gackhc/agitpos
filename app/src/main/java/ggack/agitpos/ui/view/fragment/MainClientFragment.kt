@@ -11,9 +11,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.FromMap
@@ -33,11 +36,14 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import javax.inject.Inject
 import kotlin.concurrent.timer
 
+@AndroidEntryPoint
 class MainClientFragment : Fragment() {
+    @Inject lateinit var firebaseComm: FirebaseComm
     private var binding : FragmentMainClientBinding? = null
-    private lateinit var viewModel : MainViewModel
+    private val viewModel by activityViewModels<MainViewModel>()
     private var mListPayment = mutableListOf<ItemModel>()
     private var mLogoutTimer : Timer? = null
     private var mTime = LocalTime.of(0,1,0)
@@ -81,10 +87,6 @@ class MainClientFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
-//        binding?.tvName?.setOnClickListener {
-//            (activity as MainActivity).startFragment(UserListFragment())
-//        }
         initItemAdapter()
         initObserver()
         initPaymentAdapter()
@@ -107,10 +109,10 @@ class MainClientFragment : Fragment() {
                                 map[model.name] = model.getMap()
                             }
                             if(map.keys.contains("월간 이용권"))
-                                FirebaseComm.setMembership(viewModel.userName,
+                                firebaseComm.setMembership(viewModel.userName,
                                     LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
-                            FirebaseComm.setMoney(viewModel.userName, user.money - mTotal)
-                            FirebaseComm.addHistory(
+                            firebaseComm.setMoney(viewModel.userName, user.money - mTotal)
+                            firebaseComm.addHistory(
                                 HistoryModel(
                                 Instant.now().toEpochMilli(),
                                 viewModel.userName,

@@ -10,6 +10,7 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.DepositModel
@@ -24,9 +25,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.util.*
+import javax.inject.Inject
 
-
+ @AndroidEntryPoint
  class NotiListenerService: NotificationListenerService() {
+    @Inject lateinit var firebaseComm: FirebaseComm
      private var observerUser : Observer<Any?>? = null
      private var mUserPrepared = false
      private var mUserList : Map<String, Map<String, Any>>? = null
@@ -45,14 +48,14 @@ import java.util.*
              mUserPrepared = true
          }
          observerUser?.let {
-             FirebaseComm.liveUserList.observeForever(it)
+             firebaseComm.liveUserList.observeForever(it)
          }
      }
 
      override fun onListenerDisconnected() {
          super.onListenerDisconnected()
          Log.e("onListenerDisconnected", "disconnected")
-         observerUser?.let { FirebaseComm.liveUserList.removeObserver(it) }
+         observerUser?.let { firebaseComm.liveUserList.removeObserver(it) }
      }
      override fun onNotificationPosted(sbn: StatusBarNotification?) {
          super.onNotificationPosted(sbn)
@@ -78,7 +81,7 @@ import java.util.*
                 if(nickName != null && money != null) {
                     val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
                     mUserPrepared = false
-                    FirebaseComm.getUsers()
+                    firebaseComm.getUsers()
                     CoroutineScope(Dispatchers.Main).launch {
                         while (!mUserPrepared) {
                             delay(10)
@@ -87,7 +90,7 @@ import java.util.*
                         if (name != null) {
                             val user = FromMap.toUserModel(mUserList!![name]!!)
                             val money = user.money + model.money
-                            FirebaseComm.setMoney(name, money)
+                            firebaseComm.setMoney(name, money)
 
                             val historyModel = HistoryModel(
                                 System.currentTimeMillis(),
@@ -97,9 +100,9 @@ import java.util.*
                                 mapOf(),
                                 "카카오페이"
                             )
-                            FirebaseComm.addHistory(historyModel)
+                            firebaseComm.addHistory(historyModel)
                         } else {
-                            FirebaseComm.addDepositItem(model)
+                            firebaseComm.addDepositItem(model)
                         }
                     }
                 }
@@ -122,7 +125,7 @@ import java.util.*
                  if(nickName != null && money != null) {
                      val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
                      mUserPrepared = false
-                     FirebaseComm.getUsers()
+                     firebaseComm.getUsers()
                      CoroutineScope(Dispatchers.Main).launch {
                          while (!mUserPrepared) {
                              delay(10)
@@ -131,7 +134,7 @@ import java.util.*
                          if (name != null) {
                              val user = FromMap.toUserModel(mUserList!![name]!!)
                              val money = user.money + model.money
-                             FirebaseComm.setMoney(name, money)
+                             firebaseComm.setMoney(name, money)
 
                              val historyModel = HistoryModel(
                                  System.currentTimeMillis(),
@@ -141,9 +144,9 @@ import java.util.*
                                  mapOf(),
                                  "카뱅"
                              )
-                             FirebaseComm.addHistory(historyModel)
+                             firebaseComm.addHistory(historyModel)
                          } else {
-                             FirebaseComm.addDepositItem(model)
+                             firebaseComm.addDepositItem(model)
                          }
                      }
                  }

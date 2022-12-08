@@ -6,7 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.model.networkmodel.AccountModel
 import ggack.agitpos.databinding.FragmentMainMasterBinding
 import ggack.agitpos.ui.view.activity.MainActivity
@@ -14,9 +17,10 @@ import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.ui.view.dialog.AccountDialog
 import ggack.agitpos.utils.Utils
 
+@AndroidEntryPoint
 class MainMasterFragment : Fragment() {
     private var binding : FragmentMainMasterBinding? = null
-    private lateinit var viewModel : MainViewModel
+    private val viewModel by activityViewModels<MainViewModel>()
     private var account : AccountModel? = null
     var restart = false
 
@@ -32,7 +36,6 @@ class MainMasterFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         binding?.btnUser?.setOnClickListener {
             (activity as MainActivity).addFragment(UserListFragment())
         }

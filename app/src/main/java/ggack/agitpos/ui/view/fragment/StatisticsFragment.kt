@@ -5,8 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.StatisticsItemModel
 import ggack.agitpos.data.model.StatisticsModel
@@ -20,10 +23,13 @@ import ggack.agitpos.ui.adapter.StatisticsMonthAdapter
 import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Utils
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class StatisticsFragment : Fragment() {
+    @Inject lateinit var firebaseComm: FirebaseComm
     private var binding : FragmentMasterStatisticsBinding? = null
-    private lateinit var viewModel : MainViewModel
+    private val viewModel by activityViewModels<MainViewModel>()
     private val listMonthData : MutableList<StatisticsModel> = mutableListOf()
     private val listDateData : MutableList<StatisticsModel> = mutableListOf()
     private val listItemData : MutableList<StatisticsItemModel> = mutableListOf()
@@ -40,7 +46,6 @@ class StatisticsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         initObserver()
         initViews()
 
@@ -50,7 +55,7 @@ class StatisticsFragment : Fragment() {
     }
     private fun initViews() {
         binding?.swipeRefreshLayout?.setOnRefreshListener {
-            FirebaseComm.getPrevHistory()
+            firebaseComm.getPrevHistory()
             binding?.swipeRefreshLayout?.isRefreshing = false
         }
         binding?.btnDay?.setOnClickListener {
@@ -71,7 +76,7 @@ class StatisticsFragment : Fragment() {
     }
 
     private fun initObserver() {
-        FirebaseComm.liveHistory.observe(viewLifecycleOwner) {
+        firebaseComm.liveHistory.observe(viewLifecycleOwner) {
             it?.let {
                 setDateData(it)
                 setMonthData(it)

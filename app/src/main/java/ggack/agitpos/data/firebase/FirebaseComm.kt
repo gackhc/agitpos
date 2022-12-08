@@ -9,8 +9,11 @@ import ggack.agitpos.utils.Utils
 import java.lang.Exception
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object FirebaseComm {
+@Singleton
+class FirebaseComm @Inject constructor(){
     private val TAG = "Firebase"
     private lateinit var mDatabase : DatabaseReference
     private var mID : String? = null

@@ -12,18 +12,22 @@ import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.AccountModel
 import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.data.sms.SmsManager
-import ggack.agitpos.ui.base.BaseViewModel
 import ggack.agitpos.ui.view.dialog.AddItemDialog
 import ggack.agitpos.utils.CharSearcher
 import ggack.agitpos.utils.Permissions
+import javax.inject.Inject
 
-class MainViewModel : BaseViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) : ViewModel() {
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveDeposits: LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveItems: LiveData<List<Map<String, Any>?>>
@@ -33,11 +37,11 @@ class MainViewModel : BaseViewModel() {
     val liveCurrentUser = MutableLiveData<UserModel?>(null)
     var userName = ""
     fun init() {
-        liveUserData = Transformations.map(FirebaseComm.liveUserList){it}
-        liveDeposits = Transformations.map(FirebaseComm.liveDeposits){it}
-        liveItems = Transformations.map(FirebaseComm.liveItemList){it}
-        liveHistoryByName = Transformations.map(FirebaseComm.liveHistoryByName){it}
-        liveAccount = Transformations.map(FirebaseComm.liveAccount){it}
+        liveUserData = Transformations.map(firebaseComm.liveUserList){it}
+        liveDeposits = Transformations.map(firebaseComm.liveDeposits){it}
+        liveItems = Transformations.map(firebaseComm.liveItemList){it}
+        liveHistoryByName = Transformations.map(firebaseComm.liveHistoryByName){it}
+        liveAccount = Transformations.map(firebaseComm.liveAccount){it}
     }
     fun popupAddUser(context : Context) {
         val editText = EditText(context)
@@ -65,7 +69,7 @@ class MainViewModel : BaseViewModel() {
         ) { _, _ ->
             try {
                 val v = editText.text.toString().toInt()
-                FirebaseComm.setMoney(name, v)
+                firebaseComm.setMoney(name, v)
                 Toast.makeText(context, "입력 성공", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(context, "입력 실패", Toast.LENGTH_SHORT).show()
@@ -84,7 +88,7 @@ class MainViewModel : BaseViewModel() {
                 Toast.makeText(context, "짧습니다", Toast.LENGTH_SHORT).show()
             } else {
                 try {
-                    FirebaseComm.changePin(name, editText.text.toString())
+                    firebaseComm.changePin(name, editText.text.toString())
                     Toast.makeText(context, "수정 성공", Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {
                     Toast.makeText(context, "수정 실패", Toast.LENGTH_SHORT).show()
@@ -113,35 +117,35 @@ class MainViewModel : BaseViewModel() {
         dlg.show()
     }
     fun addUser(userName : String) {
-        FirebaseComm.addUser(userName)
+        firebaseComm.addUser(userName)
     }
     fun removeUser(userName : String) {
-        FirebaseComm.removeUser(userName)
+        firebaseComm.removeUser(userName)
     }
     fun refreshUser() {
-        FirebaseComm.getUsers()
+        firebaseComm.getUsers()
     }
     fun getDeposits() {
-        FirebaseComm.getDeposits()
+        firebaseComm.getDeposits()
     }
     fun refreshItems() {
-        FirebaseComm.getItems()
+        firebaseComm.getItems()
     }
     fun setMoney(name : String, money : Int) {
-        FirebaseComm.setMoney(name, money)
+        firebaseComm.setMoney(name, money)
     }
     fun removeItem(model : ItemModel) {
-        FirebaseComm.removeItem(model)
+        firebaseComm.removeItem(model)
     }
     fun addItem(model : ItemModel) {
-        FirebaseComm.addItem(model)
+        firebaseComm.addItem(model)
     }
     fun setItems(list : List<ItemModel>) {
         val map = mutableMapOf<String, Map<String, Any>>()
         for(i in 0 until list.lastIndex) {
             map[list[i].idx.toString()] = list[i].getMap()
         }
-        FirebaseComm.setItems(map)
+        firebaseComm.setItems(map)
     }
     fun checkDeposits(context : Context) {
         if(Permissions.requestPermission(context, Manifest.permission.READ_SMS, 0, "")) {
@@ -155,7 +159,7 @@ class MainViewModel : BaseViewModel() {
     }
 
     fun setAccount(context: Context, account : String, name : String, kakaoPay : String) {
-        FirebaseComm.setAccount(context, account.replace(" ", "").replace("-", ""), name, kakaoPay)
+        firebaseComm.setAccount(context, account.replace(" ", "").replace("-", ""), name, kakaoPay)
     }
     fun GetUserByConsonant(key : String) : List<String>{
         val searcher = CharSearcher()

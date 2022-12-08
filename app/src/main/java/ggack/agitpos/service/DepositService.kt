@@ -11,12 +11,16 @@ import java.util.*
 import android.telephony.SmsMessage
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.ui.view.activity.LoginActivity
+import javax.inject.Inject
 
 
+@AndroidEntryPoint
 open class DepositService : Service() {
+    @Inject lateinit var firebaseComm: FirebaseComm
     private var mTimer : Timer? = null
     //private var observerDeposit : Observer<Any?>? = null
     private var observerUser : Observer<Any?>? = null
@@ -83,7 +87,7 @@ open class DepositService : Service() {
     }
     fun getUserList() {
         mUserPrepared = false
-        FirebaseComm.getUsers()
+        firebaseComm.getUsers()
     }
     val smsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
