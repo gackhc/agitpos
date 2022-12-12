@@ -14,7 +14,7 @@ import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.ui.view.activity.LoginActivity
+import ggack.agitpos.ui.login.LoginActivity
 import javax.inject.Inject
 
 

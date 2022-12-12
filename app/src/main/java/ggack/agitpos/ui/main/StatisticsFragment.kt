@@ -1,4 +1,4 @@
-package ggack.agitpos.ui.view.fragment
+package ggack.agitpos.ui.main
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,8 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.firebase.FirebaseComm
@@ -20,7 +18,6 @@ import ggack.agitpos.databinding.FragmentMasterStatisticsBinding
 import ggack.agitpos.ui.adapter.StatisticsDailyAdapter
 import ggack.agitpos.ui.adapter.StatisticsItemAdapter
 import ggack.agitpos.ui.adapter.StatisticsMonthAdapter
-import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Utils
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject

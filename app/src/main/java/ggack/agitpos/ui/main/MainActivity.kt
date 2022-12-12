@@ -1,4 +1,4 @@
-package ggack.agitpos.ui.view.activity
+package ggack.agitpos.ui.main
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,11 +10,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.databinding.ActivityMainBinding
 import ggack.agitpos.ui.base.BaseActivity
-import ggack.agitpos.ui.view.fragment.MainClientFragment
-import ggack.agitpos.ui.view.fragment.MainMasterFragment
-import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.ui.view.dialog.SimpleDialog
-import ggack.agitpos.ui.viewmodel.LoginViewModel
+import ggack.agitpos.ui.login.LoginActivity
+import ggack.agitpos.ui.dialog.SimpleDialog
 import ggack.agitpos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -16,7 +16,7 @@ import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.DepositModel
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.HistoryModel
-import ggack.agitpos.ui.view.activity.LoginActivity
+import ggack.agitpos.ui.login.LoginActivity
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.Utils
 import kotlinx.coroutines.CoroutineScope

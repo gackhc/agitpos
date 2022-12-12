@@ -4,7 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.Handler
 import android.os.IBinder
-import ggack.agitpos.ui.view.activity.LoginActivity
+import ggack.agitpos.ui.login.LoginActivity
 import ggack.agitpos.utils.Utils
 
 class RestartActivityService : Service() {

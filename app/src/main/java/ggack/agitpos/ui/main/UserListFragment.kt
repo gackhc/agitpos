@@ -1,4 +1,4 @@
-package ggack.agitpos.ui.view.fragment
+package ggack.agitpos.ui.main
 
 import Singleton.isDuplicated
 import android.os.Bundle
@@ -9,20 +9,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.databinding.FragmentUserListBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.UserAdapter
-import ggack.agitpos.ui.view.dialog.SimpleDialog
-import ggack.agitpos.ui.view.dialog.SimpleEditDialog
-import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.ui.view.dialog.SimpleListDialog
+import ggack.agitpos.ui.dialog.SimpleEditDialog
+import ggack.agitpos.ui.dialog.SimpleListDialog
 import ggack.agitpos.utils.Utils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -137,7 +132,7 @@ class UserListFragment : Fragment() {
             override fun onADD(key: String, item: Any?) {
                 super.onADD(key, item)
                 item as UserModel
-                val dlg = SimpleEditDialog(requireContext(), SimpleEditDialog.TYPE_ONE_BUTTON) {result, data ->
+                val dlg = SimpleEditDialog(requireContext(), SimpleEditDialog.TYPE_ONE_BUTTON) { result, data ->
                     if(data.isNotEmpty()) {
                         if(data.isNotEmpty()) {
                             if (mapUserList.isDuplicated(key, data))

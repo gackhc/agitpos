@@ -1,4 +1,4 @@
-package ggack.agitpos.ui.view.fragment
+package ggack.agitpos.ui.main
 
 import Singleton.isDuplicated
 import android.app.Activity
@@ -9,8 +9,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.firebase.FirebaseComm
@@ -20,10 +18,9 @@ import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.databinding.FragmentListBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.DepositAdapter
-import ggack.agitpos.ui.viewmodel.MainViewModel
 import ggack.agitpos.utils.Constants
-import ggack.agitpos.ui.view.dialog.SimpleDialog
-import ggack.agitpos.ui.view.dialog.SimpleListDialog
+import ggack.agitpos.ui.dialog.SimpleDialog
+import ggack.agitpos.ui.dialog.SimpleListDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

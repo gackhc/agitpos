@@ -1,28 +1,21 @@
-package ggack.agitpos.ui.view.fragment
+package ggack.agitpos.ui.main
 
-import android.graphics.Canvas
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.databinding.FragmentItemsBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.ItemAdapter
-import ggack.agitpos.ui.viewmodel.MainViewModel
-import java.util.*
 
 @AndroidEntryPoint
 class ItemListFragment : Fragment() {

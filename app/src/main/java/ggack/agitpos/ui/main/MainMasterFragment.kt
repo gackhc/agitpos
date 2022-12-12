@@ -1,4 +1,4 @@
-package ggack.agitpos.ui.view.fragment
+package ggack.agitpos.ui.main
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,14 +7,10 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.model.networkmodel.AccountModel
 import ggack.agitpos.databinding.FragmentMainMasterBinding
-import ggack.agitpos.ui.view.activity.MainActivity
-import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.ui.view.dialog.AccountDialog
+import ggack.agitpos.ui.dialog.AccountDialog
 import ggack.agitpos.utils.Utils
 
 @AndroidEntryPoint

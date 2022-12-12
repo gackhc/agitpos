@@ -48,9 +48,11 @@ android {
             keyPassword "157394qQ"
         }
     }
-    buildFeatures {
-        viewBinding = true
-        dataBinding = true
+    dataBinding {
+        enabled true
+    }
+    viewBinding {
+        enabled true
     }
 }
 

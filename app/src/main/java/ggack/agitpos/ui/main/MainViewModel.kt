@@ -1,4 +1,4 @@
-package ggack.agitpos.ui.viewmodel
+package ggack.agitpos.ui.main
 
 import Singleton.isDuplicated
 import android.Manifest
@@ -13,7 +13,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.AccountModel
@@ -21,7 +20,7 @@ import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.data.sms.SmsManager
-import ggack.agitpos.ui.view.dialog.AddItemDialog
+import ggack.agitpos.ui.dialog.AddItemDialog
 import ggack.agitpos.utils.CharSearcher
 import ggack.agitpos.utils.Permissions
 import javax.inject.Inject

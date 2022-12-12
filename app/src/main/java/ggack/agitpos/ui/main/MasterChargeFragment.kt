@@ -1,4 +1,4 @@
-package ggack.agitpos.ui.view.fragment
+package ggack.agitpos.ui.main
 
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
@@ -14,8 +14,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,10 +27,9 @@ import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.adapter.PaymentAdapter
 import ggack.agitpos.ui.adapter.UserNameAdapter
-import ggack.agitpos.ui.viewmodel.MainViewModel
-import ggack.agitpos.ui.view.dialog.AddItemDialog
+import ggack.agitpos.ui.dialog.AddItemDialog
 import ggack.agitpos.utils.Constants
-import ggack.agitpos.ui.view.dialog.SimpleDialog
+import ggack.agitpos.ui.dialog.SimpleDialog
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime

@@ -8,7 +8,7 @@
     android:orientation="horizontal"
     android:paddingStart="5dp"
     android:paddingEnd="5dp"
-    tools:context=".ui.view.activity.MainActivity">
+    tools:context=".ui.main.MainActivity">
     <TextView
         android:id="@+id/tvDate"
         android:layout_weight="1"

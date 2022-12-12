@@ -10,7 +10,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import ggack.agitpos.R
-import ggack.agitpos.ui.view.activity.LoginActivity
+import ggack.agitpos.ui.login.LoginActivity
 import ggack.agitpos.utils.Utils
 
 class RestartService : Service() {

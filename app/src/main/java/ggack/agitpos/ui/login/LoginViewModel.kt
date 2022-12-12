@@ -1,7 +1,8 @@
-package ggack.agitpos.ui.viewmodel
+package ggack.agitpos.ui.login
 
 import android.content.Context
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,10 @@ class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm)
     lateinit var liveHistory : LiveData<MutableMap<String, HistoryModel>?>
     lateinit var liveValidate : LiveData<Boolean>
     lateinit var liveAccount : LiveData<AccountModel?>
+
+    private val _liveShowBankAccount = MutableLiveData(false)
+    val liveShowBankAccount : LiveData<Boolean> = _liveShowBankAccount
+
     fun init() {
         liveUserData = Transformations.map(firebaseComm.liveUserList) {
             it
@@ -63,5 +68,10 @@ class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm)
 
     fun firebaseValidate() {
         firebaseComm.checkValidate()
+    }
+
+
+    fun onShowBankAccountBtnClick() {
+        _liveShowBankAccount.postValue(!(_liveShowBankAccount.value?:true))
     }
 }

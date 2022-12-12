@@ -8,7 +8,7 @@
     android:background="@color/white"
     android:orientation="horizontal"
    android:gravity="center"
-    tools:context=".ui.view.activity.MainActivity">
+    tools:context=".ui.main.MainActivity">
     <TextView
        android:id="@+id/tvName"
        android:layout_width="0dp"
