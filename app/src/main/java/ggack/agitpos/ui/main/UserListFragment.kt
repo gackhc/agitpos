@@ -91,7 +91,7 @@ class UserListFragment : Fragment() {
 
     fun initAdapter() {
         binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
-        adapter = UserAdapter(requireContext(), mapUserList, object : ListListener {
+        adapter = UserAdapter(mapUserList, object : ListListener {
             override fun onRemove(key: String, item: Any?) {
                 super.onRemove(key, item)
                 currentSelected = key
@@ -123,10 +123,13 @@ class UserListFragment : Fragment() {
                 mDlgHistory?.show()
             }
 
-            override fun onMember(key: String, item: Any?, b: Boolean) {
-                super.onMember(key, item, b)
+            override fun onMember(key: String, item: Any?) {
+                super.onMember(key, item)
+                item as UserModel
                 currentSelected = key
-                firebaseComm.setMembership(key, if(b) LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")) else "")
+                firebaseComm.setMembership(key,
+                    if(item.member != LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
+                        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")) else "")
             }
 
             override fun onADD(key: String, item: Any?) {

@@ -5,38 +5,36 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.databinding.ItemItemPaymentBinding
+import ggack.agitpos.listener.ItemCountChangeListener
 import ggack.agitpos.listener.ListListener
 
 class PaymentAdapter(var list : MutableList<ItemModel>, val listener : ListListener) : RecyclerView.Adapter<PaymentAdapter.MyViewHolder>(){
     inner class MyViewHolder(var b : ItemItemPaymentBinding): RecyclerView.ViewHolder(b.root) {
         fun bind(item : ItemModel) {
-            b.tvName.text = item.name
-            b.tvCount.text = item.cnt.toString()
-            b.tvPrice.text = (item.cnt * item.price).toString()
-            b.cvUp.setOnClickListener {
-                val p = list.position(item.name)
-                if(p < 0)
-                    return@setOnClickListener
-                item.cnt++
-                notifyItemChanged(p)
-                listener.onChange(p)
-            }
-            b.cvDown.setOnClickListener {
-                val p = list.position(item.name)
-                if(p < 0)
-                    return@setOnClickListener
-                item.cnt--
-                if(item.cnt > 0) {
-                    notifyItemChanged(p)
-                }else {
-                    list.removeAt(p)
-                    notifyItemRemoved(p)
+            b.item = item
+            b.listener = object : ItemCountChangeListener {
+                override fun up() {
+                    val p = list.position(item.name)
+                    if(p >= 0) {
+                        item.cnt++
+                        notifyItemChanged(p)
+                        listener.onChange(p)
+                    }
                 }
-                listener.onChange(p)
-            }
 
-            b.root.setOnClickListener {
-                listener.onClick(item.name, item.price)
+                override fun down() {
+                    val p = list.position(item.name)
+                    if(p >= 0) {
+                        item.cnt--
+                        if(item.cnt > 0) {
+                            notifyItemChanged(p)
+                        }else {
+                            list.removeAt(p)
+                            notifyItemRemoved(p)
+                        }
+                        listener.onChange(p)
+                    }
+                }
             }
         }
     }

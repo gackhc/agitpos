@@ -4,20 +4,20 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import ggack.agitpos.data.model.StatisticsModel
+import ggack.agitpos.data.model.StatisticsMonthModel
 import ggack.agitpos.databinding.ItemHistoryBinding
+import ggack.agitpos.databinding.ItemStatisticsBinding
 import java.time.format.DateTimeFormatter
 
-class StatisticsMonthAdapter(var list : MutableList<StatisticsModel>) : RecyclerView.Adapter<StatisticsMonthAdapter.MyViewHolder>(){
-    inner class MyViewHolder(var b : ItemHistoryBinding): RecyclerView.ViewHolder(b.root) {
-        fun bind(item : StatisticsModel) {
-            //item.nickname
-            //item.item?.keys
-            b.tv.text = "${item.date.format(DateTimeFormatter.ofPattern("yyyy년 MM월"))} 총 입금액 : ${item.deposit} 총 결제액 : ${item.payment}"
+class StatisticsMonthAdapter(var list : MutableList<StatisticsMonthModel>) : RecyclerView.Adapter<StatisticsMonthAdapter.MyViewHolder>(){
+    inner class MyViewHolder(var b : ItemStatisticsBinding): RecyclerView.ViewHolder(b.root) {
+        fun bind(item : StatisticsMonthModel) {
+            b.item = item
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val binding = ItemHistoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemStatisticsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return MyViewHolder(binding)
     }
 

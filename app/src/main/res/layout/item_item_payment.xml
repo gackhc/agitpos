@@ -1,71 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="5dp"
-    android:background="@color/white"
-    android:orientation="horizontal"
-   android:gravity="center"
-    tools:context=".ui.main.MainActivity">
-    <TextView
-       android:id="@+id/tvName"
-       android:layout_width="0dp"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
+   xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+           name="item"
+           type="ggack.agitpos.data.model.networkmodel.ItemModel" />
+        <variable
+           name="listener"
+           type="ggack.agitpos.listener.ItemCountChangeListener" />
+        <variable
+           name="listListener"
+           type="ggack.agitpos.listener.ListListener" />
+    </data>
+
+    <LinearLayout
+       android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_weight="0.5"
-       android:layout_marginHorizontal="10dp"
-       android:text="이름"
-       />
-    <androidx.cardview.widget.CardView
-       android:id="@+id/cvDown"
-       android:layout_width="20dp"
-       android:layout_height="20dp"
-       android:layout_margin="3dp"
-       app:cardCornerRadius="10dp">
+       android:layout_margin="5dp"
+       android:background="@color/white"
+       android:orientation="horizontal"
+       android:gravity="center"
+       android:onClick="@{() -> listListener.onClick(item.name, item.price)}"
+       tools:context=".ui.main.MainActivity">
+
         <TextView
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"
-           android:gravity="center"
-           android:textStyle="bold"
+           android:id="@+id/tvName"
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           android:layout_weight="0.5"
+           android:layout_marginHorizontal="10dp"
+           android:text="@{item.name}" />
+
+        <androidx.cardview.widget.CardView
+           android:id="@+id/cvDown"
+           android:layout_width="20dp"
+           android:layout_height="20dp"
+           android:layout_margin="3dp"
+           android:onClick="@{() -> listener.down()}"
+           app:cardCornerRadius="10dp">
+
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:gravity="center"
+               android:textStyle="bold"
+               android:textAlignment="center"
+               android:textSize="10dp"
+               android:background="@color/secondaryVarient"
+               android:text="－" />
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+           android:id="@+id/tvCount"
+           android:layout_width="20dp"
+           android:layout_height="wrap_content"
+           android:layout_gravity="center"
            android:textAlignment="center"
-           android:textSize="10dp"
-           android:background="@color/secondaryVarient"
-           android:text="－"
-           />
-    </androidx.cardview.widget.CardView>
-    <TextView
-       android:id="@+id/tvCount"
-       android:layout_width="20dp"
-       android:layout_height="wrap_content"
-       android:layout_gravity="center"
-       android:textAlignment="center"
-       android:text="5"
-       android:layout_marginHorizontal="5dp"
-       />
-    <androidx.cardview.widget.CardView
-       android:id="@+id/cvUp"
-       android:layout_width="20dp"
-       android:layout_height="20dp"
-       android:layout_margin="3dp"
-       app:cardCornerRadius="10dp">
+           android:text="@{item.cnt}"
+           android:layout_marginHorizontal="5dp" />
+
+        <androidx.cardview.widget.CardView
+           android:id="@+id/cvUp"
+           android:layout_width="20dp"
+           android:layout_height="20dp"
+           android:layout_margin="3dp"
+           android:onClick="@{() -> listener.up()}"
+           app:cardCornerRadius="10dp">
+
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:gravity="center"
+               android:textStyle="bold"
+               android:textSize="10dp"
+               android:background="@color/secondaryVarient"
+               android:text="＋" />
+        </androidx.cardview.widget.CardView>
+
         <TextView
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"
-           android:gravity="center"
-           android:textStyle="bold"
-           android:textSize="10dp"
-           android:background="@color/secondaryVarient"
-           android:text="＋"
-           />
-    </androidx.cardview.widget.CardView>
-    <TextView
-       android:id="@+id/tvPrice"
-       android:layout_width="0dp"
-       android:layout_height="wrap_content"
-       android:layout_weight="0.2"
-       android:layout_marginHorizontal="10dp"
-       android:textAlignment="textEnd"
-       android:text="1000 pt"
-       />
-</LinearLayout>
+           android:id="@+id/tvPrice"
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           android:layout_weight="0.2"
+           android:layout_marginHorizontal="10dp"
+           android:textAlignment="textEnd"
+           android:text="@{item.cnt * item.price}" />
+    </LinearLayout>
+</layout>

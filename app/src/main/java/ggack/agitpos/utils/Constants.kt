@@ -5,5 +5,5 @@ object Constants {
     const val HISTORY_PAYMENT = "결제"
 
     const val ACTION_START_MAIN_ACTIVITY = 0
-    const val ACTION_TOAST_SHORT = 1
+    const val ACTION_TOAST = 1
 }

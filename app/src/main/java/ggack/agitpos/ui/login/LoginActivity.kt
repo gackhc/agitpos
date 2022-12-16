@@ -4,12 +4,10 @@ import Singleton
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.NotificationManagerCompat
 import androidx.databinding.DataBindingUtil
@@ -108,7 +106,7 @@ class LoginActivity : BaseActivity() {
                 Uri.parse("package:$packageName")
             )
             startActivity(intent)
-            Toast.makeText(this, "다른 앱 위에 표시 권한을 설정해주세요", Toast.LENGTH_LONG).show()
+            Utils.toast(this, "다른 앱 위에 표시 권한을 설정해주세요")
             return
         } else {
             val sets = NotificationManagerCompat.getEnabledListenerPackages(this)
@@ -140,7 +138,6 @@ class LoginActivity : BaseActivity() {
         startActivityForResult(signInIntent, 1000)
     }
 
-    val historyKeys = mutableListOf<String>()
     private fun initObserver() {
         viewModel.liveUserData.observe(this) {
             it?.let {
@@ -186,8 +183,8 @@ class LoginActivity : BaseActivity() {
 
         viewModel.liveEvent.observe(this) {
             when(it?.action) {
-                Constants.ACTION_TOAST_SHORT -> {
-                    Toast.makeText(this, it.param as String, Toast.LENGTH_SHORT).show()
+                Constants.ACTION_TOAST -> {
+                    Utils.toast(this, it.param as String)
                 }
                 Constants.ACTION_START_MAIN_ACTIVITY -> {
                     val intent = it.param as Intent
@@ -212,7 +209,7 @@ class LoginActivity : BaseActivity() {
             } catch (e: ApiException) {
                 // Google Sign In failed, update UI appropriately
                 Log.w("login", "Google sign in failed", e)
-                Toast.makeText(this, "구글 로그인 실패", Toast.LENGTH_SHORT).show()
+                Utils.toast(this, "구글 로그인 실패")
                 finishAffinity()
                 Utils.setPref(this, "restart", false)
             }
@@ -228,7 +225,7 @@ class LoginActivity : BaseActivity() {
                     val user = mAuth.currentUser
                     Singleton.account = user?.email
                     if(user?.email.isNullOrEmpty()) {
-                        Toast.makeText(this, "구글 로그인 실패(이메일 정보 이상)", Toast.LENGTH_SHORT).show()
+                        Utils.toast(this, "구글 로그인 실패(이메일 정보 이상)")
                         finishAffinity()
                         Utils.setPref(this, "restart", false)
                     } else {
@@ -236,7 +233,7 @@ class LoginActivity : BaseActivity() {
                     }
                 } else {
                     Log.w("login", "signInWithCredential:failure", task.exception)
-                    Toast.makeText(this, "구글 로그인 실패", Toast.LENGTH_SHORT).show()
+                    Utils.toast(this, "구글 로그인 실패")
                     finishAffinity()
                     Utils.setPref(this, "restart", false)
                 }

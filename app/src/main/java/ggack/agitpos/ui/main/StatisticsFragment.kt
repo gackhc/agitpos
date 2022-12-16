@@ -11,6 +11,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.StatisticsItemModel
 import ggack.agitpos.data.model.StatisticsModel
+import ggack.agitpos.data.model.StatisticsMonthModel
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.data.model.networkmodel.ItemModel
@@ -27,7 +28,7 @@ class StatisticsFragment : Fragment() {
     @Inject lateinit var firebaseComm: FirebaseComm
     private var binding : FragmentMasterStatisticsBinding? = null
     private val viewModel by activityViewModels<MainViewModel>()
-    private val listMonthData : MutableList<StatisticsModel> = mutableListOf()
+    private val listMonthData : MutableList<StatisticsMonthModel> = mutableListOf()
     private val listDateData : MutableList<StatisticsModel> = mutableListOf()
     private val listItemData : MutableList<StatisticsItemModel> = mutableListOf()
     var currentSel = 0
@@ -83,7 +84,7 @@ class StatisticsFragment : Fragment() {
         }
     }
     fun setMonthData(data : Map<String, HistoryModel>) {
-        val map : MutableMap<String, StatisticsModel> = hashMapOf()
+        val map : MutableMap<String, StatisticsMonthModel> = hashMapOf()
         data.forEach {
             val dateTime = Utils.getDate(it.value.date)
             val kind = it.value.kind
@@ -91,7 +92,7 @@ class StatisticsFragment : Fragment() {
             val strMonth = dateTime.format(DateTimeFormatter.ofPattern("yyyyMM"))
             val month = dateTime.toLocalDate()
             if(!map.containsKey(strMonth))
-                map[strMonth] = StatisticsModel(month, 0, 0)
+                map[strMonth] = StatisticsMonthModel(month, 0, 0)
             when(kind) {
                 "입금" -> map[strMonth]!!.deposit += money
                 "결제" -> map[strMonth]!!.payment += money
