@@ -1,5 +1,6 @@
 package ggack.agitpos.ui.main
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -25,6 +26,7 @@ class ItemListFragment : Fragment() {
     var mListItems = mutableListOf<ItemModel>()
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentItemsBinding.inflate(inflater, container, false)
+        binding?.vm = viewModel
         return binding?.root
     }
 
@@ -36,30 +38,15 @@ class ItemListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initObserver()
         initAdapter()
-        initViews()
         viewModel.refreshItems()
-    }
-    fun initViews() {
-        binding?.btnMonthly?.setOnClickListener {
-            viewModel.addItem(ItemModel("월간 이용권", 40000, 1, if(mListItems.size <= 1) 1 else (mListItems[mListItems.lastIndex - 1].idx + 1)))
-        }
     }
     fun initObserver() {
         viewModel.liveItems.observe(viewLifecycleOwner) {
             it?.let {
                 mListItems.clear()
-                mListItems.addAll(FromMap.toItemModels(it))
+                mListItems.addAll(it)
                 mListItems.add(ItemModel("plusitem", 0, 0, 99999, -1))
                 binding?.rv?.adapter?.notifyDataSetChanged()
-
-                var b = true
-                for(item in mListItems) {
-                    if(item.name == "월간 이용권"){
-                        b  = false
-                        break
-                    }
-                }
-                binding?.btnMonthly?.visibility = if(b) View.VISIBLE else View.GONE
             }
         }
     }
@@ -84,7 +71,6 @@ class ItemListFragment : Fragment() {
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
-                //어떤 방향으로 드래그, 스와이프 되었는지 알기 위해서 반드시 구현해야한다.
                 return makeFlag(
                     ItemTouchHelper.ACTION_STATE_DRAG,
                     ItemTouchHelper.DOWN or ItemTouchHelper.UP or ItemTouchHelper.START or ItemTouchHelper.END

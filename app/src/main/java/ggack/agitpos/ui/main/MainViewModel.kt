@@ -15,10 +15,7 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.networkmodel.AccountModel
-import ggack.agitpos.data.model.networkmodel.HistoryModel
-import ggack.agitpos.data.model.networkmodel.ItemModel
-import ggack.agitpos.data.model.networkmodel.UserModel
+import ggack.agitpos.data.model.networkmodel.*
 import ggack.agitpos.data.sms.SmsManager
 import ggack.agitpos.ui.dialog.AddItemDialog
 import ggack.agitpos.utils.CharSearcher
@@ -29,16 +26,28 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) : ViewModel() {
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveDeposits: LiveData<Map<String, Map<String, Any>>?>
-    lateinit var liveItems: LiveData<List<Map<String, Any>?>>
+    lateinit var liveItems: LiveData<List<ItemModel>>
     lateinit var liveHistoryByName : LiveData<MutableMap<String, MutableList<HistoryModel>>?>
     lateinit var liveAccount : LiveData<AccountModel?>
 
     val liveCurrentUser = MutableLiveData<UserModel?>(null)
+    private val _liveHasMonthlyMemberItem = MutableLiveData(false)
+    val liveHasMonthlyMemberItem : LiveData<Boolean> = _liveHasMonthlyMemberItem
     var userName = ""
     fun init() {
         liveUserData = Transformations.map(firebaseComm.liveUserList){it}
         liveDeposits = Transformations.map(firebaseComm.liveDeposits){it}
-        liveItems = Transformations.map(firebaseComm.liveItemList){it}
+        liveItems = Transformations.map(firebaseComm.liveItemList){
+            val list = FromMap.toItemModels(it)
+            _liveHasMonthlyMemberItem.postValue(false)
+            for(item in list) {
+                if(item.name == "월간 이용권"){
+                    _liveHasMonthlyMemberItem.postValue(true)
+                    break
+                }
+            }
+            list
+        }
         liveHistoryByName = Transformations.map(firebaseComm.liveHistoryByName){it}
         liveAccount = Transformations.map(firebaseComm.liveAccount){it}
     }
@@ -177,4 +186,10 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) 
         }
         return listData.sorted()
     }
-}
+
+    fun addMonthlyMemberItem() {
+        val list = liveItems.value?: listOf()
+        addItem(ItemModel("월간 이용권", 40000, 1,
+            if(list.size <= 1) 1 else list.last().idx + 1))
+    }
+ }

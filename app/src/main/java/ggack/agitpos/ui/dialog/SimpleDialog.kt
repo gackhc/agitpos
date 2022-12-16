@@ -53,7 +53,11 @@ class SimpleDialog(val context: Context, val type : Int, val resultCallback : Re
         binding.btnOk.setOnClickListener(onClickListener)
         binding.btnCancel.setOnClickListener(onClickListener)
         binding.btnConfirm.setOnClickListener(onClickListener)
-        dlg.show()
+        try {
+            dlg.show()
+        } catch (e : Exception) {
+
+        }
     }
 
     fun dismiss(){

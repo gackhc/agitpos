@@ -58,9 +58,6 @@ class LoginActivity : BaseActivity() {
         binding.lifecycleOwner = this
         binding.vm = viewModel
         viewModel.init()
-        viewModel.liveEtId.observe(this) {
-            Log.e("log", it)
-        }
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))

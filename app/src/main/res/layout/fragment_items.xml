@@ -1,26 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.constraintlayout.widget.ConstraintLayout
-   xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:app="http://schemas.android.com/apk/res-auto"
-   xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/white"
-    android:clickable="true"
-    tools:context=".ui.main.MainActivity">
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btnMonthly"/>
-    <Button
-        android:id="@+id/btnMonthly"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:visibility="gone"
-        android:text="월간 이용권 항목 추가"
-        app:layout_constraintBottom_toBottomOf="parent"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+   xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import type="android.view.View"/>
+        <variable
+           name="vm"
+           type="ggack.agitpos.ui.main.MainViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:background="@color/white"
+       android:clickable="true"
+       tools:context=".ui.main.MainActivity">
+
+        <androidx.recyclerview.widget.RecyclerView
+           android:id="@+id/rv"
+           android:layout_width="match_parent"
+           android:layout_height="0dp"
+           app:layout_constraintTop_toTopOf="parent"
+           app:layout_constraintBottom_toTopOf="@id/btnMonthly" />
+
+        <Button
+           android:id="@+id/btnMonthly"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_margin="10dp"
+           android:visibility="@{vm.liveHasMonthlyMemberItem ? View.GONE : View.VISIBLE}"
+           android:onClick="@{() -> vm.addMonthlyMemberItem()}"
+           android:text="월간 이용권 항목 추가"
+           app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

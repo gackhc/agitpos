@@ -58,7 +58,7 @@
            android:layout_height="wrap_content"
            android:layout_gravity="center"
            android:textAlignment="center"
-           android:text="@{item.cnt}"
+           android:text="@{Integer.toString(item.cnt)}"
            android:layout_marginHorizontal="5dp" />
 
         <androidx.cardview.widget.CardView
@@ -86,6 +86,6 @@
            android:layout_weight="0.2"
            android:layout_marginHorizontal="10dp"
            android:textAlignment="textEnd"
-           android:text="@{item.cnt * item.price}" />
+           android:text="@{Integer.toString(item.cnt * item.price)}" />
     </LinearLayout>
 </layout>
