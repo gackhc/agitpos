@@ -34,6 +34,8 @@ import ggack.agitpos.ui.adapter.HistoryAdapter
 import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.base.BaseActivity
 import ggack.agitpos.ui.dialog.SimpleDialog
+import ggack.agitpos.ui.main.MainActivity
+import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.Utils
 import java.util.*
 import javax.inject.Inject
@@ -51,7 +53,6 @@ class LoginActivity : BaseActivity() {
     private var mTimerRefresh : Timer? = null
     private var mAdapter : UserNameAdapter? = null
     private var mHistoryAdapter : HistoryAdapter? = null
-    private var mMapName : Map<String, Map<String, Any>> = HashMap()
     private var mListHistory = mutableListOf<HistoryModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +60,10 @@ class LoginActivity : BaseActivity() {
         binding.lifecycleOwner = this
         binding.vm = viewModel
         viewModel.init()
+        viewModel.liveEtId.observe(this) {
+            Log.e("log", it)
+        }
+
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -67,7 +72,6 @@ class LoginActivity : BaseActivity() {
         mGoogleClient = GoogleSignIn.getClient(this, gso)
         initAdapter()
         initObserver()
-        //initView()
         signIn()
     }
     fun initPowerMode() {
@@ -140,7 +144,6 @@ class LoginActivity : BaseActivity() {
     private fun initObserver() {
         viewModel.liveUserData.observe(this) {
             it?.let {
-                mMapName = it
                 mAdapter?.map = it
                 mAdapter?.keys = it.keys.toList().sorted()
                 mAdapter?.notifyDataSetChanged()
@@ -172,6 +175,25 @@ class LoginActivity : BaseActivity() {
                 dialogValidate?.setText("사용기간이 만료되었습니다. 관리자에게 문의 바랍니다. \nhongc90@naver.com")
                 dialogValidate?.setCancelable(false)
                 dialogValidate?.show()
+            }
+        }
+
+        viewModel.liveEtId.observe(this) {
+            val list = viewModel.GetUserByConsonant(it)
+            mAdapter?.keys = list.sorted()
+            mAdapter?.notifyDataSetChanged()
+        }
+
+        viewModel.liveEvent.observe(this) {
+            when(it?.action) {
+                Constants.ACTION_TOAST_SHORT -> {
+                    Toast.makeText(this, it.param as String, Toast.LENGTH_SHORT).show()
+                }
+                Constants.ACTION_START_MAIN_ACTIVITY -> {
+                    val intent = it.param as Intent
+                    intent.setClass(this, MainActivity::class.java)
+                    startActivity(intent)
+                }
             }
         }
     }
@@ -220,80 +242,6 @@ class LoginActivity : BaseActivity() {
                 }
             }
     }
-
-//    private fun initView() {
-//        binding.etNickname.setOnFocusChangeListener { v, hasFocus ->
-//            if (hasFocus)
-//                binding.rvNickName.visibility = View.VISIBLE
-//            else
-//                binding.rvNickName.visibility = View.GONE
-//        }
-//        binding.etNickname.addTextChangedListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-//            }
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-//            }
-//            override fun afterTextChanged(s: Editable?) {
-//                val list = viewModel.GetUserByConsonant(s.toString())
-//                mAdapter?.keys = list.sorted()
-//                mAdapter?.notifyDataSetChanged()
-//            }
-//        })
-//
-//        binding.root.setOnClickListener {
-//            binding.rvNickName.visibility = View.GONE
-//        }
-//        binding.etNickname.setOnClickListener {
-//            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-//            imm.showSoftInput(binding.etNickname,0)
-//            binding.etNickname.setText("")
-//            binding.rvNickName.visibility = View.VISIBLE
-//        }
-//        binding.etNickname.setOnFocusChangeListener { v, hasFocus ->
-//            if(hasFocus) {
-//                binding.etNickname.setText("")
-//                binding.rvNickName.visibility = View.VISIBLE
-//            } else {
-//                binding.rvNickName.visibility = View.GONE
-//            }
-//        }
-//        binding.rvHistory.setOnTouchListener { v, event ->
-//            binding.rvNickName.visibility = View.GONE
-//            false
-//        }
-//        binding.etPin.addTextChangedListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-//            }
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-//            }
-//            override fun afterTextChanged(s: Editable?) {
-//                if(s?.length == 4) {
-//                    mMapName[binding.etNickname.text.toString().lowercase()]?.let {
-//                        val model = FromMap.toUserModel(it)
-//                        if (s.toString() == model.pin) {
-//                            Toast.makeText(this@LoginActivity, "로그인 성공", Toast.LENGTH_SHORT).show()
-//                            firebaseComm.getItems()
-//
-//                            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-//                            imm.hideSoftInputFromWindow(currentFocus?.windowToken,0)
-//                            val intentMain = Intent(this@LoginActivity, MainActivity::class.java)
-//                            intentMain.putExtra("name", binding.etNickname.text.toString().lowercase())
-//                            intentMain.putExtra("isMaster", binding.etNickname.text.toString() == "*master")
-//
-//                            startActivity(intentMain)
-//                        } else
-//                            binding.etPin.setText("")
-//
-//                    } ?: run {
-//                        binding.etPin.setText("")
-//                        Toast.makeText(this@LoginActivity, "닉네임을 선택해주세요", Toast.LENGTH_SHORT).show()
-//                        binding.etNickname.requestFocus()
-//                    }
-//                }
-//            }
-//        })
-//    }
-
 
     private fun initAdapter() {
         binding.rvNickName.layoutManager = LinearLayoutManager(this)

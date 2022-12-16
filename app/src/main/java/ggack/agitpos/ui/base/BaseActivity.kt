@@ -9,7 +9,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.service.RestartActivityService
 
 open class BaseActivity : AppCompatActivity() {
-    var isDestroying = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -17,7 +16,6 @@ open class BaseActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        if(!isDestroying)
-            startService(Intent(this, RestartActivityService::class.java))
+        startService(Intent(this, RestartActivityService::class.java))
     }
 }

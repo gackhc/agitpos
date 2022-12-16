@@ -16,6 +16,7 @@
       android:padding="20dp"
       android:keepScreenOn="true"
       tools:context=".ui.login.LoginActivity"
+      android:onClick="@{() -> vm.setIdsVisibility(false)}"
       >
 
       <LinearLayout
@@ -34,18 +35,18 @@
             android:textSize="20sp"
             android:text="닉네임 : " />
 
-         <EditText
+         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etNickname"
             android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
             android:inputType="text"
             android:lines="1"
-            android:textSize="20sp"
-            android:imeOptions="actionNext"
             android:nextFocusForward="@id/etPin"
-            android:layout_height="wrap_content"
-            app:onFocusLost="@{() -> }"
-
-            />
+            android:onClick="@{(view) -> vm.setIdsVisibility(true, view)}"
+            android:text="@={vm.liveEtId}"
+            android:textSize="20sp"
+            app:onFocusChange="@{(view, focus) -> vm.setIdsVisibility(focus)}" />
       </LinearLayout>
 
       <LinearLayout
@@ -62,12 +63,14 @@
             android:textSize="20sp"
             android:text="PIN : " />
 
-         <EditText
+         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etPin"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:inputType="numberPassword"
             android:lines="1"
+            android:text="@={vm.liveEtPin}"
+            android:onTextChanged="@{vm.onPinChanged}"
             android:maxLength="4"
             android:imeOptions="actionDone"
             android:minWidth="150dp" />
@@ -157,6 +160,8 @@
          android:focusable="true"
          android:clickable="true"
          android:visibility="@{vm.liveShowBankAccount ? View.GONE : View.VISIBLE}"
+         android:onClick="@{() -> vm.setIdsVisibility(false)}"
+
          app:layout_constraintTop_toBottomOf="@id/tv1"
          app:layout_constraintBottom_toTopOf="@id/btnChange" />
 
@@ -179,6 +184,6 @@
          android:background="@color/gray"
          app:layout_constraintHeight_min="100dp"
          app:layout_constraintHeight_max="400dp"
-         android:visibility="visible" />
+         android:visibility="@{vm.liveIdsVisible ? View.VISIBLE : View.GONE}" />
    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

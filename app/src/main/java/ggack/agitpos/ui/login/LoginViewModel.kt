@@ -1,19 +1,31 @@
 package ggack.agitpos.ui.login
 
 import android.content.Context
+import android.content.Intent
+import android.database.Observable
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.EditText
+import androidx.databinding.BaseObservable
+import androidx.databinding.InverseBindingAdapter
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ggack.agitpos.data.firebase.FirebaseComm
+import ggack.agitpos.data.model.EventModel
 import ggack.agitpos.data.model.networkmodel.AccountModel
+import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.HistoryModel
+import ggack.agitpos.ui.base.BaseViewModel
 import ggack.agitpos.utils.CharSearcher
+import ggack.agitpos.utils.Constants
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm) : ViewModel() {
+class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm) : BaseViewModel() {
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveHistory : LiveData<MutableMap<String, HistoryModel>?>
     lateinit var liveValidate : LiveData<Boolean>
@@ -21,6 +33,13 @@ class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm)
 
     private val _liveShowBankAccount = MutableLiveData(false)
     val liveShowBankAccount : LiveData<Boolean> = _liveShowBankAccount
+
+    private val _liveIdsVisible = MutableLiveData(false)
+    val liveIdsVisible : LiveData<Boolean> = _liveIdsVisible
+
+
+    val liveEtId= MutableLiveData("")
+    val liveEtPin= MutableLiveData("")
 
     fun init() {
         liveUserData = Transformations.map(firebaseComm.liveUserList) {
@@ -37,7 +56,6 @@ class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm)
         }
     }
 
-    var mapUserList = mapOf<String, Map<String, Any>>()
     fun GetUserByConsonant(key : String) : List<String>{
         val searcher = CharSearcher()
         val listData = mutableListOf<String>()
@@ -73,5 +91,35 @@ class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm)
 
     fun onShowBankAccountBtnClick() {
         _liveShowBankAccount.postValue(!(_liveShowBankAccount.value?:true))
+    }
+    fun setIdsVisibility(visible : Boolean) {
+        Log.e("debug", "setIdsVisibility $visible")
+        _liveIdsVisible.postValue(visible)
+    }
+    fun setIdsVisibility(visible : Boolean, view : View) {
+        Log.e("debug", "setIdsVisibility $visible")
+        setIdsVisibility(visible)
+        liveEtId.postValue("")
+    }
+    fun onPinChanged(s: CharSequence, start :Int, before : Int, count: Int){
+        if(s.length == 4) {
+            liveUserData.value?.get(liveEtId.value?.lowercase())?.let {
+                val model = FromMap.toUserModel(it)
+                if (s.toString() == model.pin) {
+                    liveEvent.postValue(EventModel(Constants.ACTION_TOAST_SHORT, "로그인 성공"))
+                    firebaseComm.getItems()
+
+                    val intent = Intent()
+                    intent.putExtra("name", liveEtId.value?.lowercase())
+                    intent.putExtra("isMaster", liveEtId.value?.toString() == "*master")
+                    liveEvent.postValue(EventModel(Constants.ACTION_START_MAIN_ACTIVITY, intent))
+                } else
+                    liveEtPin.postValue("")
+
+            } ?: run {
+                liveEtPin.postValue("")
+                liveEvent.postValue(EventModel(Constants.ACTION_TOAST_SHORT, "닉네임을 선택해주세요"))
+            }
+        }
     }
 }
