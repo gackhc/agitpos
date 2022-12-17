@@ -18,14 +18,16 @@ class FirebaseComm @Inject constructor(){
     private lateinit var mDatabase : DatabaseReference
     private var mID : String? = null
     private lateinit var mValidate : LocalDate
-    val liveItemList = MutableLiveData<List<Map<String, Any>?>>(null)
-    val liveUserList = MutableLiveData<Map<String, Map<String, Any>>?>(null)
-    val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>?>(null)
-    val liveHistory = MutableLiveData<MutableMap<String, HistoryModel>?>(null)
-    val liveHistoryStatistics = MutableLiveData<MutableMap<String, HistoryModel>?>(null)
+    val liveItemList = MutableLiveData<List<Map<String, Any>>>(listOf())
+    val liveUserList = MutableLiveData<Map<String, Map<String, Any>>>(mapOf())
+    val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>>(mapOf())
+    val liveHistory = MutableLiveData<MutableMap<String, HistoryModel>>(mutableMapOf())
+    val liveHistoryStatistics = MutableLiveData<MutableMap<String, HistoryModel>>(mutableMapOf())
     val liveValidate = MutableLiveData(true)
     val liveAccount = MutableLiveData<AccountModel?>(null)
-    val liveHistoryByName = MutableLiveData<MutableMap<String, MutableList<HistoryModel>>?>(null)
+    val liveHistoryByName = MutableLiveData<MutableMap<String, MutableList<HistoryModel>>>(
+        mutableMapOf()
+    )
     fun init() {
         mDatabase = FirebaseDatabase.getInstance().reference
     }
@@ -99,7 +101,7 @@ class FirebaseComm @Inject constructor(){
                 if(value == null) {
                     addUser("*MASTER")
                 } else {
-                    liveUserList.postValue(value)
+                    liveUserList.postValue(value!!)
                 }
                 Log.e(TAG, value.toString())
             }.addOnSuccessListener {
@@ -128,10 +130,10 @@ class FirebaseComm @Inject constructor(){
             mDatabase.child(it).child("items").get().addOnSuccessListener { data ->
                 val value = data.value
                 if (value is HashMap<*, *>) {
-                    liveItemList.postValue(value.toList() as List<Map<String, Any>?>)
+                    liveItemList.postValue(value.toList() as List<Map<String, Any>>)
                 }
                 else if (value is ArrayList<*>) {
-                    liveItemList.postValue(value.toList() as List<Map<String, Any>?>)
+                    liveItemList.postValue(value.toList() as List<Map<String, Any>>)
                 } else {
                     liveItemList.postValue(listOf())
                 }
