@@ -27,6 +27,7 @@ class ItemListFragment : Fragment() {
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentItemsBinding.inflate(inflater, container, false)
         binding?.vm = viewModel
+        binding?.lifecycleOwner = viewLifecycleOwner
         return binding?.root
     }
 

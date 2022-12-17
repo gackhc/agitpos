@@ -19,7 +19,11 @@ import ggack.agitpos.data.model.networkmodel.*
 import ggack.agitpos.data.sms.SmsManager
 import ggack.agitpos.ui.dialog.AddItemDialog
 import ggack.agitpos.utils.CharSearcher
+import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.Permissions
+import java.time.Instant
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,10 +34,12 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) 
     lateinit var liveHistoryByName : LiveData<MutableMap<String, MutableList<HistoryModel>>?>
     lateinit var liveAccount : LiveData<AccountModel?>
 
-    val liveCurrentUser = MutableLiveData<UserModel?>(null)
     private val _liveHasMonthlyMemberItem = MutableLiveData(false)
     val liveHasMonthlyMemberItem : LiveData<Boolean> = _liveHasMonthlyMemberItem
-    var userName = ""
+
+    val liveCurrentUserMoney = MutableLiveData<Int>(0)
+    val liveCurrentUserName = MutableLiveData<String>("")
+    val liveCurrentUserMonthly = MutableLiveData<Boolean>(false)
     fun init() {
         liveUserData = Transformations.map(firebaseComm.liveUserList){it}
         liveDeposits = Transformations.map(firebaseComm.liveDeposits){it}
@@ -85,7 +91,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) 
         }
         dlg.show()
     }
-    fun popUpChangePin(context : Context, name : String = userName) {
+    fun popUpChangePin(context : Context, name : String = liveCurrentUserName.value?:"") {
         val editText = EditText(context)
         editText.inputType = InputType.TYPE_CLASS_NUMBER
         editText.textAlignment = View.TEXT_ALIGNMENT_CENTER
@@ -162,8 +168,9 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) 
     }
 
     fun setUser(name : String, user : UserModel) {
-        userName = name
-        liveCurrentUser.postValue(user)
+        liveCurrentUserName.postValue(name)
+        liveCurrentUserMoney.postValue(user.money)
+        liveCurrentUserMonthly.postValue(user.member == LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
     }
 
     fun setAccount(context: Context, account : String, name : String, kakaoPay : String) {
@@ -191,5 +198,26 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) 
         val list = liveItems.value?: listOf()
         addItem(ItemModel("월간 이용권", 40000, 1,
             if(list.size <= 1) 1 else list.last().idx + 1))
+    }
+
+    fun onPayment() {
+        val map = mutableMapOf<String, Map<String, Any>>()
+        mListPayment.forEach {model->
+            map[model.name] = model.getMap()
+        }
+        if(map.keys.contains("월간 이용권"))
+            firebaseComm.setMembership(viewModel.liveCurrentUserName.value?:"",
+                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
+        firebaseComm.setMoney(viewModel.liveCurrentUserName.value?:"", (viewModel.liveCurrentUserMoney.value?:0) - mTotal)
+        firebaseComm.addHistory(
+            HistoryModel(
+                Instant.now().toEpochMilli(),
+                viewModel.liveCurrentUserName.value?:"",
+                Constants.HISTORY_PAYMENT,
+                mTotal,
+                map,
+                ""
+            )
+        )
     }
  }

@@ -191,7 +191,7 @@ class MasterChargeFragment : Fragment() {
         viewModel.liveItems.observe(viewLifecycleOwner) {
             it?.let {
                 mListItems.clear()
-                mListItems.addAll(FromMap.toItemModels(it))
+                mListItems.addAll(it)
                 binding?.rvItems?.adapter?.notifyDataSetChanged()
             }
         }

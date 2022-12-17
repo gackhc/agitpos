@@ -46,34 +46,11 @@ class MainClientFragment : Fragment() {
     private var mTime = LocalTime.of(0,1,0)
     private var mUser : UserModel? = null
     private var mTotal = 0
-    private val mListItems = if(LocalDateTime.now().dayOfMonth < 16) {
-        mutableListOf(
-            ItemModel("일일 이용권", 6000, 1),
-            ItemModel("월간 이용권", 40000, 1),
-            ItemModel("캔음료", 1300, 1),
-            ItemModel("라면", 2000, 1),
-            ItemModel("고급라면", 2500, 1),
-            ItemModel("계란", 500, 1),
-            ItemModel("아메리카노", 1000, 1),
-            ItemModel("에이드류", 1000, 1),
-            ItemModel("라떼류", 2000, 1),
-            ItemModel("밀크티", 2000, 1)
-        )
-    } else {
-        mutableListOf(
-            ItemModel("일일 이용권", 6000, 1),
-            ItemModel("캔음료", 1300, 1),
-            ItemModel("라면", 2000, 1),
-            ItemModel("고급라면", 2500, 1),
-            ItemModel("계란", 500, 1),
-            ItemModel("아메리카노", 1000, 1),
-            ItemModel("에이드류", 1000, 1),
-            ItemModel("라떼류", 2000, 1),
-            ItemModel("밀크티", 2000, 1)
-        )
-    }
+    private val mListItems = mutableListOf<ItemModel>()
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMainClientBinding.inflate(inflater, container, false)
+        binding?.vm = viewModel
+        binding?.lifecycleOwner = viewLifecycleOwner
         return binding?.root
     }
 
@@ -97,68 +74,39 @@ class MainClientFragment : Fragment() {
             viewModel.popUpChangePin(requireContext())
         }
         binding?.btnPayment?.setOnClickListener {
-            mUser?.let { user ->
-                val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
-                    when (it) {
-                        RESULT_OK -> {
-                            val map = mutableMapOf<String, Map<String, Any>>()
-                            mListPayment.forEach {model->
-                                map[model.name] = model.getMap()
-                            }
-                            if(map.keys.contains("월간 이용권"))
-                                firebaseComm.setMembership(viewModel.userName,
-                                    LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
-                            firebaseComm.setMoney(viewModel.userName, user.money - mTotal)
-                            firebaseComm.addHistory(
-                                HistoryModel(
-                                Instant.now().toEpochMilli(),
-                                viewModel.userName,
-                                Constants.HISTORY_PAYMENT,
-                                mTotal,
-                                map,
-                                ""
-                            )
-                            )
-                            Toast.makeText(requireContext(), "결제가 완료되었습니다.", Toast.LENGTH_SHORT).show()
-                            activity?.onBackPressed()
-                        }
-                        RESULT_CANCELED -> {
+            val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
+                when (it) {
+                    RESULT_OK -> {
+                        Toast.makeText(requireContext(), "결제가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                        activity?.onBackPressed()
+                    }
+                    RESULT_CANCELED -> {
 
-                        }
                     }
                 }
-                dlg.setText("${binding?.tvTotal?.text} 을 결제하시겠습니까?")
-                dlg.show()
             }
+            dlg.setText("${binding?.tvTotal?.text} 을 결제하시겠습니까?")
+            dlg.show()
         }
 
     }
 
     fun initObserver() {
-        viewModel.liveCurrentUser.observe(viewLifecycleOwner) {user ->
-            user?.let {
-                mUser = it
-                if(mUser?.member == LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"))){
-                    binding?.tvName?.text = "${viewModel.userName} (월회원)"
-                    binding?.tvName?.setTextColor(requireContext().getColor(R.color.red))
-                    var n = -1
-                    for((i, item) in mListItems.withIndex()) {
-                        if (item.name == "월간 회원권")
-                            n = i
-                    }
-                    if(n >= 0)
-                        mListItems.removeAt(n)
-                } else {
-                    binding?.tvName?.text = viewModel.userName
-                    binding?.tvName?.setTextColor(requireContext().getColor(R.color.black))
+        viewModel.liveCurrentUserMonthly.observe(viewLifecycleOwner) {
+            if(it) {
+                var n = -1
+                for((i, item) in mListItems.withIndex()) {
+                    if (item.name == "월간 회원권")
+                        n = i
                 }
-                binding?.tvPoint?.text = "${user.money} pt"
+                if(n >= 0)
+                    mListItems.removeAt(n)
             }
         }
         viewModel.liveItems.observe(viewLifecycleOwner) {
             it?.let {
                 mListItems.clear()
-                mListItems.addAll(FromMap.toItemModels(it))
+                mListItems.addAll(it)
                 var n = -1
                 for((i, item) in mListItems.withIndex()) {
                     if (item.name == "월간 회원권")
@@ -171,7 +119,6 @@ class MainClientFragment : Fragment() {
         }
     }
     fun initItemAdapter() {
-
         binding?.rvItems?.layoutManager = GridLayoutManager(requireContext(), 4)
         binding?.rvItems?.adapter = ItemAdapter(mListItems, object : ListListener {
             override fun onClick(key: String, item: Any?) {
@@ -210,7 +157,7 @@ class MainClientFragment : Fragment() {
         mListPayment.forEach {
             mTotal += it.price * it.cnt
         }
-        binding?.tvTotal?.text = "$mTotal pt"
+        binding?.tvTotal?.text = "￦ $mTotal"
     }
     fun setTimer() {
         mLogoutTimer?.cancel()
