@@ -6,4 +6,6 @@
     <string name="txtDelete">삭제</string>
     <string name="showBankAccount">입금 방법 보기</string>
     <string name="showHistory">거래 내역 보기</string>
+    <string name="autoStartUnSet">자동 재시작 해제</string>
+    <string name="autoStartSet">자동 재시작 설정</string>
 </resources>

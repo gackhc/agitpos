@@ -106,7 +106,7 @@ class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm)
                     val intent = Intent()
                     intent.putExtra("name", liveEtId.value?.lowercase())
                     intent.putExtra("isMaster", liveEtId.value?.toString() == "*master")
-                    liveEvent.postValue(EventModel(Constants.ACTION_START_MAIN_ACTIVITY, intent))
+                    liveEvent.postValue(EventModel(Constants.ACTION_START_ACTIVITY_MAIN, intent))
                 } else
                     liveEtPin.postValue("")
 

@@ -15,19 +15,23 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ggack.agitpos.data.firebase.FirebaseComm
+import ggack.agitpos.data.model.EventModel
 import ggack.agitpos.data.model.networkmodel.*
 import ggack.agitpos.data.sms.SmsManager
+import ggack.agitpos.ui.base.BaseViewModel
+import ggack.agitpos.ui.dialog.AccountDialog
 import ggack.agitpos.ui.dialog.AddItemDialog
 import ggack.agitpos.utils.CharSearcher
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.Permissions
+import ggack.agitpos.utils.Utils
 import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) : ViewModel() {
+class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) : BaseViewModel() {
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveDeposits: LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveItems: LiveData<List<ItemModel>>
@@ -37,10 +41,13 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) 
     private val _liveHasMonthlyMemberItem = MutableLiveData(false)
     val liveHasMonthlyMemberItem : LiveData<Boolean> = _liveHasMonthlyMemberItem
 
+    private val _liveAutoStart = MutableLiveData(false)
+    val liveAutoStart : LiveData<Boolean> = _liveAutoStart
+
     val liveCurrentUserMoney = MutableLiveData<Int>(0)
     val liveCurrentUserName = MutableLiveData<String>("")
     val liveCurrentUserMonthly = MutableLiveData<Boolean>(false)
-    fun init() {
+    fun init(isAutoStartOn : Boolean) {
         liveUserData = Transformations.map(firebaseComm.liveUserList){it}
         liveDeposits = Transformations.map(firebaseComm.liveDeposits){it}
         liveItems = Transformations.map(firebaseComm.liveItemList){
@@ -56,6 +63,8 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) 
         }
         liveHistoryByName = Transformations.map(firebaseComm.liveHistoryByName){it}
         liveAccount = Transformations.map(firebaseComm.liveAccount){it}
+
+        _liveAutoStart.postValue(isAutoStartOn)
     }
     fun popupAddUser(context : Context) {
         val editText = EditText(context)
@@ -221,5 +230,31 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) 
                 ""
             )
         )
+    }
+
+    fun onStartFragment(action : Int) {
+        liveEvent.postValue(EventModel(action))
+    }
+    fun onSetUserAccount(v : View) {
+        val dlg = AccountDialog(v.context) { account, name, kakaoPay ->
+            if(account.length < 8) {
+                Toast.makeText(v.context, "계좌번호를 확인 해 주세요", Toast.LENGTH_SHORT).show()
+                setAccount(v.context, "", name, kakaoPay)
+            } else {
+                setAccount(v.context, account, name, kakaoPay)
+            }
+        }
+        dlg.setText("입금계좌(카카오뱅크)를 숫자만 입력해주세요")
+        liveAccount.value?.let{
+            dlg.setEditText(it.account, it.name, it.kakaopay)
+        }
+        dlg.show()
+    }
+    fun onSetQR(v : View) {
+
+    }
+    fun onSetAutoStart(v : View) {
+        _liveAutoStart.postValue(!(liveAutoStart.value?:true))
+        Utils.setPref(v.context, "settingRestart", _liveAutoStart.value?:true)
     }
  }

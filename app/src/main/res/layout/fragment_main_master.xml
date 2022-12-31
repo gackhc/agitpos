@@ -4,7 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
+        <import type="android.view.View"/>
+        <import type="ggack.agitpos.utils.Constants"/>
+        <variable
+           name="vm"
+           type="ggack.agitpos.ui.main.MainViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -18,7 +22,9 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:text="유저 설정"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+           android:onClick="@{() -> vm.onStartFragment(Constants.ACTION_START_FRAGMENT_USER)}"
+           />
 
         <Button
             android:id="@+id/btnDeposit"
@@ -26,7 +32,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:text="입금 미일치 내역 수정"
-            app:layout_constraintTop_toBottomOf="@id/btnUser" />
+            app:layout_constraintTop_toBottomOf="@id/btnUser"
+           android:onClick="@{() -> vm.onStartFragment(Constants.ACTION_START_FRAGMENT_DEPOSIT)}" />
 
         <Button
             android:id="@+id/btnAccount"
@@ -34,7 +41,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:text="계좌번호 설정"
-            app:layout_constraintTop_toBottomOf="@id/btnDeposit" />
+            app:layout_constraintTop_toBottomOf="@id/btnDeposit"
+           android:onClick="@{(view) -> vm.onSetUserAccount(view)}"/>
 
         <Button
             android:id="@+id/btnQR"
@@ -43,7 +51,8 @@
             android:layout_margin="10dp"
             android:visibility="gone"
             android:text="카카오페이 QR 설정"
-            app:layout_constraintTop_toBottomOf="@id/btnAccount" />
+            app:layout_constraintTop_toBottomOf="@id/btnAccount"
+           android:onClick="@{(view) -> vm.onSetQR(view)}"/>
 
         <Button
             android:id="@+id/btnCharge"
@@ -52,7 +61,8 @@
             android:layout_margin="10dp"
             android:visibility="visible"
             android:text="마스터 결제"
-            app:layout_constraintTop_toBottomOf="@id/btnQR" />
+            app:layout_constraintTop_toBottomOf="@id/btnQR"
+           android:onClick="@{() -> vm.onStartFragment(Constants.ACTION_START_FRAGMENT_MASTER_CHARGE)}"/>
 
         <Button
             android:id="@+id/btnStatistics"
@@ -61,7 +71,8 @@
             android:layout_margin="10dp"
             android:visibility="visible"
             android:text="결제 통계"
-            app:layout_constraintTop_toBottomOf="@id/btnCharge" />
+            app:layout_constraintTop_toBottomOf="@id/btnCharge"
+           android:onClick="@{() -> vm.onStartFragment(Constants.ACTION_START_FRAGMENT_STATISTICS)}"/>
 
 
         <Button
@@ -71,7 +82,8 @@
             android:layout_margin="10dp"
             android:visibility="visible"
             android:text="항목 설정"
-            app:layout_constraintTop_toBottomOf="@id/btnStatistics" />
+            app:layout_constraintTop_toBottomOf="@id/btnStatistics"
+           android:onClick="@{() -> vm.onStartFragment(Constants.ACTION_START_FRAGMENT_ITEMS)}"/>
 
         <Button
             android:id="@+id/btnAutoStart"
@@ -79,7 +91,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:visibility="visible"
-            android:text="자동 재시작 해제"
-            app:layout_constraintTop_toBottomOf="@id/btnItemSetting" />
+            android:text="@{vm.liveAutoStart ? @string/autoStartUnSet : @string/autoStartSet}"
+            app:layout_constraintTop_toBottomOf="@id/btnItemSetting"
+            android:onClick="@{(view) -> vm.onSetAutoStart(view)}"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

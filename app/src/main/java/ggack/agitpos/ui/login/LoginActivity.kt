@@ -32,6 +32,7 @@ import ggack.agitpos.ui.adapter.HistoryAdapter
 import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.base.BaseActivity
 import ggack.agitpos.ui.dialog.SimpleDialog
+import ggack.agitpos.ui.main.ClientActivity
 import ggack.agitpos.ui.main.MainActivity
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.Utils
@@ -183,10 +184,15 @@ class LoginActivity : BaseActivity() {
                 Constants.ACTION_TOAST -> {
                     Utils.toast(this, it.param as String)
                 }
-                Constants.ACTION_START_MAIN_ACTIVITY -> {
+                Constants.ACTION_START_ACTIVITY_MAIN -> {
                     val intent = it.param as Intent
-                    intent.setClass(this, MainActivity::class.java)
-                    startActivity(intent)
+                    if(intent.getBooleanExtra("isMaster", false)) {
+                        intent.setClass(this, MainActivity::class.java)
+                        startActivity(intent)
+                    } else {
+                        intent.setClass(this, ClientActivity::class.java)
+                        startActivity(intent)
+                    }
                 }
             }
         }
