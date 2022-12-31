@@ -200,21 +200,23 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm) 
             if(list.size <= 1) 1 else list.last().idx + 1))
     }
 
-    fun onPayment() {
+    fun onPayment(list : List<ItemModel>) {
         val map = mutableMapOf<String, Map<String, Any>>()
-        mListPayment.forEach {model->
+        var total = 0
+        list.forEach {model->
             map[model.name] = model.getMap()
+            total += model.price * model.cnt
         }
         if(map.keys.contains("월간 이용권"))
-            firebaseComm.setMembership(viewModel.liveCurrentUserName.value?:"",
+            firebaseComm.setMembership(liveCurrentUserName.value?:"",
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
-        firebaseComm.setMoney(viewModel.liveCurrentUserName.value?:"", (viewModel.liveCurrentUserMoney.value?:0) - mTotal)
+        firebaseComm.setMoney(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0) - total)
         firebaseComm.addHistory(
             HistoryModel(
                 Instant.now().toEpochMilli(),
-                viewModel.liveCurrentUserName.value?:"",
+                liveCurrentUserName.value?:"",
                 Constants.HISTORY_PAYMENT,
-                mTotal,
+                total,
                 map,
                 ""
             )

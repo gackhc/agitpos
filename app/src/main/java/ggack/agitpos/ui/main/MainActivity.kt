@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.databinding.ActivityMainBinding

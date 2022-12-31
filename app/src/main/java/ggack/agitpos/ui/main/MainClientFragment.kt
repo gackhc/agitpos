@@ -77,6 +77,7 @@ class MainClientFragment : Fragment() {
             val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
                 when (it) {
                     RESULT_OK -> {
+                        viewModel.onPayment(mListPayment)
                         Toast.makeText(requireContext(), "결제가 완료되었습니다.", Toast.LENGTH_SHORT).show()
                         activity?.onBackPressed()
                     }

@@ -13,7 +13,7 @@ class DepositAdapter(var map : Map<String, Map<String, Any>>, val listener : Lis
     inner class MyViewHolder(var b: ItemDepositBinding): RecyclerView.ViewHolder(b.root) {
         fun bind(date : String, item : DepositModel?) {
             b.date = date
-            b.item = item
+            b.item = item?:DepositModel(0L, 0, "")
             b.listListener = listener
         }
     }

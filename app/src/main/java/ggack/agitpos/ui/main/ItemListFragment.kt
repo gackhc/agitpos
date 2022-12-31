@@ -1,6 +1,5 @@
 package ggack.agitpos.ui.main
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,7 +11,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.databinding.FragmentItemsBinding
 import ggack.agitpos.listener.ListListener
@@ -23,7 +21,7 @@ class ItemListFragment : Fragment() {
     private var binding : FragmentItemsBinding? = null
     private var adapter : ItemAdapter? = null
     private val viewModel by activityViewModels<MainViewModel>()
-    var mListItems = mutableListOf<ItemModel>()
+    private var mListItems = mutableListOf<ItemModel>()
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentItemsBinding.inflate(inflater, container, false)
         binding?.vm = viewModel

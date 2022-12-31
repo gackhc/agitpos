@@ -1,8 +1,5 @@
 package ggack.agitpos.bindings
 
-import android.annotation.SuppressLint
-import android.app.Application
-import android.graphics.Color
 import android.widget.EditText
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
@@ -13,7 +10,6 @@ import ggack.agitpos.data.model.StatisticsMonthModel
 import ggack.agitpos.data.model.networkmodel.DepositModel
 import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.data.model.networkmodel.ItemModel
-import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.utils.Utils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -62,8 +58,8 @@ fun setStatisticsText(v : TextView, item : Any) {
     }
 }
 @BindingAdapter("app:setDepositDateText")
-fun setDepositDateText(v : TextView, item : DepositModel) {
-    val localdate = Utils.getDate(item.date)
+fun setDepositDateText(v : TextView, item : DepositModel?) {
+    val localdate = Utils.getDate(item?.date?:0)
     val strdate = localdate.format(DateTimeFormatter.ofPattern("MM-dd\nHH:mm:ss"))
     v.text = strdate
 }

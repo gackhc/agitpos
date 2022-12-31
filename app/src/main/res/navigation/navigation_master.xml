@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_master"
+    app:startDestination="@id/mainMasterFragment">
+
+    <fragment
+        android:id="@+id/mainMasterFragment"
+        android:name="ggack.agitpos.ui.main.MainMasterFragment"
+        android:label="MainMasterFragment" >
+        <action
+            android:id="@+id/action_mainMasterFragment_to_itemListFragment"
+            app:destination="@id/itemListFragment" />
+        <action
+            android:id="@+id/action_mainMasterFragment_to_depositFragment"
+            app:destination="@id/depositFragment" />
+        <action
+            android:id="@+id/action_mainMasterFragment_to_statisticsFragment"
+            app:destination="@id/statisticsFragment" />
+        <action
+            android:id="@+id/action_mainMasterFragment_to_userListFragment"
+            app:destination="@id/userListFragment" />
+        <action
+            android:id="@+id/action_mainMasterFragment_to_masterChargeFragment"
+            app:destination="@id/masterChargeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/itemListFragment"
+        android:name="ggack.agitpos.ui.main.ItemListFragment"
+        android:label="ItemListFragment" />
+    <fragment
+        android:id="@+id/depositFragment"
+        android:name="ggack.agitpos.ui.main.DepositFragment"
+        android:label="DepositFragment" />
+    <fragment
+        android:id="@+id/statisticsFragment"
+        android:name="ggack.agitpos.ui.main.StatisticsFragment"
+        android:label="StatisticsFragment" />
+    <fragment
+        android:id="@+id/userListFragment"
+        android:name="ggack.agitpos.ui.main.UserListFragment"
+        android:label="UserListFragment" />
+    <fragment
+        android:id="@+id/masterChargeFragment"
+        android:name="ggack.agitpos.ui.main.MasterChargeFragment"
+        android:label="MasterChargeFragment" />
+</navigation>

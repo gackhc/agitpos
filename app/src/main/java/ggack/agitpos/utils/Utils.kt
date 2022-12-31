@@ -19,12 +19,6 @@ import android.content.ComponentName
 
 import android.os.Build
 
-
-
-
-
-val isDebug = true
-
 object Utils {
     private var mDlg : ProgressDialog? = null
 

@@ -247,6 +247,7 @@ class MasterChargeFragment : Fragment() {
         for((i, model) in this.withIndex()) {
             if(model.name == name)
                 return i
+
         }
         return -1
     }
