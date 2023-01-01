@@ -9,7 +9,9 @@ object FromMap {
             = UserModel(map["pin"] as String,
         (map["money"] as Long).toInt(),
         map["member"] as String?,
-        map["extraName"] as String?,)
+        map["extraName"] as String?,
+        map["isSupervisor"] as Boolean?,
+        ((map["svBonus"] as Long?)?:202212010).toInt(),)
 
     fun toHistoryModel(map : Map<String, Any?>) : HistoryModel
             = HistoryModel(map["date"] as Long,

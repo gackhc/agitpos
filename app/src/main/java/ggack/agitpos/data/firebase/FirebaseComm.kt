@@ -229,6 +229,30 @@ class FirebaseComm @Inject constructor(){
                 }
         }
     }
+    fun setSupervisor(name : String, enable : Boolean) {
+        mID?.let { it ->
+            mDatabase.child(it).child("users").child(name.lowercase()).child("isSupervisor").setValue(enable)
+                .addOnSuccessListener {
+                    getUsers()
+                }.addOnFailureListener {
+                    Log.e(TAG, "Error changePin", it)
+                }
+        }
+    }
+    fun setSvBonus(name : String, money : Int, bonus : Int) {
+        mID?.let { id ->
+            mDatabase.child(id).child("users").child(name.lowercase()).child("svBonus").setValue(bonus)
+                .addOnSuccessListener {
+                    mDatabase.child(id).child("users").child(name.lowercase()).child("money").setValue(money)
+                        .addOnSuccessListener {
+                        }.addOnFailureListener {
+                            Log.e(TAG, "Error changePin", it)
+                        }
+                }.addOnFailureListener {
+                    Log.e(TAG, "Error changePin", it)
+                }
+        }
+    }
     fun addHistory(historyModel : HistoryModel) {
         val month = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("yyyyMM"))
         val datetime = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("ddHHmmssSSS"))

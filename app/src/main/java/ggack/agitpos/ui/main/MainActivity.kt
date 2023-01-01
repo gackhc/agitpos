@@ -13,6 +13,7 @@ import ggack.agitpos.R
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.databinding.ActivityMainBinding
 import ggack.agitpos.ui.base.BaseActivity
+import ggack.agitpos.ui.dialog.AccountDialog
 import ggack.agitpos.ui.dialog.SimpleDialog
 import ggack.agitpos.ui.login.LoginActivity
 import ggack.agitpos.utils.Constants
@@ -49,7 +50,7 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
-        viewModel.liveEvent.observe(this) {
+        viewModel.liveEvent.observe(this) { it ->
             val nav = supportFragmentManager?.findFragmentById(R.id.container) as NavHostFragment?
             when(it?.action) {
                 Constants.ACTION_TOAST -> {
@@ -69,6 +70,21 @@ class MainActivity : BaseActivity() {
                 }
                 Constants.ACTION_START_FRAGMENT_USER -> {
                     nav?.navController?.navigate(R.id.action_mainMasterFragment_to_userListFragment, null)
+                }
+                Constants.ACTION_SET_USER_ACCOUNT -> {
+                    val dlg = AccountDialog(this) { account, name, kakaoPay ->
+                        if(account.length < 8) {
+                            Toast.makeText(this, "계좌번호를 확인 해 주세요", Toast.LENGTH_SHORT).show()
+                            viewModel.setAccount(this, "", name, kakaoPay)
+                        } else {
+                            viewModel.setAccount(this, account, name, kakaoPay)
+                        }
+                    }
+                    dlg.setText("입금계좌(카카오뱅크)를 숫자만 입력해주세요")
+                    viewModel.liveAccount.value?.let{model ->
+                        dlg.setEditText(model.account, model.name, model.kakaopay)
+                    }
+                    dlg.show()
                 }
             }
         }

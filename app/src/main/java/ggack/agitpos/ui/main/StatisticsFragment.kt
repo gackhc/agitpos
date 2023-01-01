@@ -6,8 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
+import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.StatisticsItemModel
 import ggack.agitpos.data.model.StatisticsModel
@@ -15,10 +17,12 @@ import ggack.agitpos.data.model.StatisticsMonthModel
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.data.model.networkmodel.ItemModel
+import ggack.agitpos.databinding.FragmentMainClientBinding
 import ggack.agitpos.databinding.FragmentMasterStatisticsBinding
 import ggack.agitpos.ui.adapter.StatisticsDailyAdapter
 import ggack.agitpos.ui.adapter.StatisticsItemAdapter
 import ggack.agitpos.ui.adapter.StatisticsMonthAdapter
+import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.Utils
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -34,6 +38,8 @@ class StatisticsFragment : Fragment() {
     var currentSel = 0
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMasterStatisticsBinding.inflate(inflater, container, false)
+        binding?.vm = viewModel
+        binding?.lifecycleOwner = viewLifecycleOwner
         return binding?.root
     }
 
@@ -47,29 +53,14 @@ class StatisticsFragment : Fragment() {
         initObserver()
         initViews()
 
-        currentSel = 0
+        currentSel = 1
         binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
-        binding?.recyclerView?.adapter = StatisticsDailyAdapter(listDateData)
+        binding?.recyclerView?.adapter = StatisticsMonthAdapter(listMonthData)
     }
     private fun initViews() {
         binding?.swipeRefreshLayout?.setOnRefreshListener {
-            firebaseComm.getPrevHistory()
+            viewModel.refreshStatistics()
             binding?.swipeRefreshLayout?.isRefreshing = false
-        }
-        binding?.btnDay?.setOnClickListener {
-            currentSel = 0
-            binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
-            binding?.recyclerView?.adapter = StatisticsDailyAdapter(listDateData)
-        }
-        binding?.btnMonth?.setOnClickListener {
-            currentSel = 1
-            binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
-            binding?.recyclerView?.adapter = StatisticsMonthAdapter(listMonthData)
-        }
-        binding?.btnItem?.setOnClickListener {
-            currentSel = 2
-            binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
-            binding?.recyclerView?.adapter = StatisticsItemAdapter(listItemData)
         }
     }
 
@@ -82,8 +73,31 @@ class StatisticsFragment : Fragment() {
                 binding?.recyclerView?.adapter?.notifyDataSetChanged()
             }
         }
+
+        viewModel.liveEvent.observe(viewLifecycleOwner) {
+            when(it?.action) {
+                Constants.ACTION_TOAST -> {
+                    Utils.toast(requireContext(), it.param as String)
+                }
+                Constants.ACTION_SELECT_STATISTICS_DAY -> {
+                    currentSel = 0
+                    binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
+                    binding?.recyclerView?.adapter = StatisticsDailyAdapter(listDateData)
+                }
+                Constants.ACTION_SELECT_STATISTICS_ITEM -> {
+                    currentSel = 2
+                    binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
+                    binding?.recyclerView?.adapter = StatisticsItemAdapter(listItemData)
+                }
+                Constants.ACTION_SELECT_STATISTICS_MONTH -> {
+                    currentSel = 1
+                    binding?.recyclerView?.layoutManager = LinearLayoutManager(requireContext())
+                    binding?.recyclerView?.adapter = StatisticsMonthAdapter(listMonthData)
+                }
+            }
+        }
     }
-    fun setMonthData(data : Map<String, HistoryModel>) {
+    private fun setMonthData(data : Map<String, HistoryModel>) {
         val map : MutableMap<String, StatisticsMonthModel> = hashMapOf()
         data.forEach {
             val dateTime = Utils.getDate(it.value.date)
@@ -101,7 +115,7 @@ class StatisticsFragment : Fragment() {
         listMonthData.clear()
         listMonthData.addAll(map.values.toList().sortedBy { it.date })
     }
-    fun setDateData(data : Map<String, HistoryModel>) {
+    private fun setDateData(data : Map<String, HistoryModel>) {
         val map : MutableMap<String, StatisticsModel> = hashMapOf()
         data.forEach {
             val dateTime = Utils.getDate(it.value.date)
@@ -119,7 +133,7 @@ class StatisticsFragment : Fragment() {
         listDateData.clear()
         listDateData.addAll(map.values.toList().sortedBy { it.date })
     }
-    fun setItemData(data : Map<String, HistoryModel>) {
+    private fun setItemData(data : Map<String, HistoryModel>) {
         val map : MutableMap<String, StatisticsItemModel> = hashMapOf()
         data.forEach {
             val dateTime = Utils.getDate(it.value.date)

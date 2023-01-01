@@ -29,6 +29,7 @@
            android:layout_height="match_parent"
            app:name="@{name}"
            app:member='@{item.member ?? ""}'
+           app:supervisor="@{item.isSupervisor() ?? false}"
            />
 
         <TextView
@@ -41,30 +42,41 @@
            android:layout_height="match_parent" />
 
         <Button
-           android:id="@+id/btnMember"
-           android:layout_width="40dp"
-           android:layout_height="wrap_content"
+           android:id="@+id/btnSupervisor"
+           android:layout_width="35dp"
+           android:layout_height="match_parent"
            android:padding="0dp"
            android:textSize="8dp"
            android:layout_marginHorizontal="5dp"
-           android:text="월간회원"
+           android:text="운영진"
+           android:onClick="@{()->listener.onSupervisor(name, item)}"
+           />
+
+        <Button
+           android:id="@+id/btnMember"
+           android:layout_width="35dp"
+           android:layout_height="match_parent"
+           android:padding="0dp"
+           android:textSize="8dp"
+           android:layout_marginEnd="5dp"
+           android:text="월간"
            android:onClick="@{()->listener.onMember(name, item)}"
            />
 
         <Button
            android:id="@+id/btnMoney"
-           android:layout_width="40dp"
-           android:layout_height="wrap_content"
+           android:layout_width="35dp"
+           android:layout_height="match_parent"
            android:padding="0dp"
            android:textSize="8dp"
            android:layout_marginEnd="5dp"
            android:onClick="@{()->listener.onChange(name, item)}"
-           android:text="금액수정" />
+           android:text="금액" />
 
         <Button
            android:id="@+id/btnRecord"
-           android:layout_width="40dp"
-           android:layout_height="wrap_content"
+           android:layout_width="35dp"
+           android:layout_height="match_parent"
            android:padding="0dp"
            android:textSize="8dp"
            android:onClick="@{()->listener.onRecord(name, item)}"
@@ -72,18 +84,18 @@
 
         <Button
            android:id="@+id/btnAddName"
-           android:layout_width="40dp"
-           android:layout_height="wrap_content"
+           android:layout_width="35dp"
+           android:layout_height="match_parent"
            android:padding="0dp"
            android:layout_marginStart="5dp"
-           android:textSize="8dp"
+           android:textSize="6sp"
            android:onClick="@{()->listener.onADD(name, item)}"
            android:text="추가이름" />
 
         <Button
            android:id="@+id/btnDelete"
-           android:layout_width="40dp"
-           android:layout_height="wrap_content"
+           android:layout_width="35dp"
+           android:layout_height="match_parent"
            android:padding="0dp"
            android:layout_marginHorizontal="5dp"
            android:onClick="@{()->listener.onRemove(name, item)}"

@@ -1,10 +1,13 @@
 package ggack.agitpos.ui.main
 
 import Singleton.isDuplicated
+import android.content.Context
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -46,7 +49,7 @@ class UserListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding?.btnAddUser?.setOnClickListener {
-            viewModel.popupAddUser(requireContext())
+            popupAddUser(requireContext())
         }
         initObserver()
         initAdapter()
@@ -107,13 +110,15 @@ class UserListFragment : Fragment() {
             override fun onChange(key: String, item: Any?) {
                 super.onChange(key, item)
                 currentSelected = key
-                viewModel.popUpChangeMoney(requireContext(),key, (item as UserModel?)?.money?:0)
+                popUpChangeMoney(requireContext(),key, (item as UserModel?)?.money?:0)
             }
 
             override fun onRecord(key: String, item: Any?) {
                 super.onRecord(key, item)
                 currentSelected = key
-                mDlgHistory = mapHistoryByName[key]?.let { SimpleListDialog(requireContext(), it) {} }
+                mDlgHistory =
+                    if(mapHistoryByName[key] != null) SimpleListDialog(requireContext(), mapHistoryByName[key]!!) {} else
+                        SimpleListDialog(requireContext(), listOf()) {}
                 mDlgHistory?.setListMargin(0)
                 mDlgHistory?.setListTextSize(10)
                 mDlgHistory?.setOnRefreshListener {
@@ -151,7 +156,51 @@ class UserListFragment : Fragment() {
                     dlg.setEditText(item.extraName?:"")
                 dlg.show()
             }
+
+            override fun onSupervisor(key: String, item: Any?) {
+                super.onSupervisor(key, item)
+                item as UserModel
+                currentSelected = key
+                firebaseComm.setSupervisor(key, item.isSupervisor != true )
+            }
         })
         binding?.recyclerView?.adapter = adapter
+    }
+
+
+    private fun popUpChangeMoney(context : Context, name : String, money : Int) {
+        val editText = EditText(context)
+        editText.inputType = InputType.TYPE_CLASS_NUMBER
+        editText.setText(money.toString())
+        editText.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        val dlg = android.app.AlertDialog.Builder(context).setView(editText).setTitle("금액 수정").setPositiveButton("OK"
+        ) { _, _ ->
+            try {
+                val v = editText.text.toString().toInt()
+                firebaseComm.setMoney(name, v)
+                Toast.makeText(context, "입력 성공", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "입력 실패", Toast.LENGTH_SHORT).show()
+            }
+        }
+        dlg.show()
+    }
+
+    private fun popupAddUser(context : Context) {
+        val editText = EditText(context)
+        val dlg = android.app.AlertDialog.Builder(context).setView(editText).setTitle("유저 추가").setPositiveButton("OK"
+        ) { _, _ ->
+            if(editText.text.toString().isNotEmpty()) {
+                if (viewModel.liveUserData.value?.isDuplicated(
+                        editText.text.toString(),
+                        editText.text.toString()
+                    ) == true
+                )
+                    Toast.makeText(context, "이름이 중복됩니다", Toast.LENGTH_SHORT).show()
+                else
+                    viewModel.addUser(editText.text.toString())
+            }
+        }.setNegativeButton("Cancel", null)
+        dlg.show()
     }
 }

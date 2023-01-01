@@ -67,13 +67,19 @@ fun setDepositDateText(v : TextView, item : DepositModel?) {
 fun setDepositDateText(v : TextView, item : ItemModel) {
     v.text = "￦ ${item.price}"
 }
-@BindingAdapter("app:name", "app:member")
-fun setMemberText(v : TextView, name : String, member : String) {
+@BindingAdapter("app:name", "app:member", "app:supervisor")
+fun setMemberText(v : TextView, name : String, member : String, supervisor : Boolean) {
     if(member == LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"))) {
-        v.text = "$name *"
+        if(supervisor)
+            v.text = "$name *#"
+        else
+            v.text = "$name *"
         v.setTextColor(v.context.getColor(R.color.red))
     } else {
-        v.text = name
+        if(supervisor)
+            v.text = "$name #"
+        else
+            v.text = "$name"
         v.setTextColor(v.context.getColor(R.color.black))
     }
 }

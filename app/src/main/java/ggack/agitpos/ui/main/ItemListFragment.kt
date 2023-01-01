@@ -1,5 +1,6 @@
 package ggack.agitpos.ui.main
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,6 +16,7 @@ import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.databinding.FragmentItemsBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.ItemAdapter
+import ggack.agitpos.ui.dialog.AddItemDialog
 
 @AndroidEntryPoint
 class ItemListFragment : Fragment() {
@@ -56,12 +58,12 @@ class ItemListFragment : Fragment() {
 
             override fun onClick(key: String, item: Any?) {
                 super.onClick(key, item)
-                viewModel.popUpItemChange(requireContext(),item as ItemModel, item.idx)
+                popUpItemChange(requireContext(),item as ItemModel, item.idx)
             }
 
             override fun onADD(key: String, item: Any?) {
                 super.onADD(key, item)
-                viewModel.popUpItemChange(requireContext(), null, if(mListItems.size <= 1) 1 else (mListItems[mListItems.lastIndex - 1].idx + 1))
+                popUpItemChange(requireContext(), null, if(mListItems.size <= 1) 1 else (mListItems[mListItems.lastIndex - 1].idx + 1))
             }
         })
         binding?.rv?.adapter = adapter
@@ -130,5 +132,25 @@ class ItemListFragment : Fragment() {
         }
 
         ItemTouchHelper(itemTouchCallback).attachToRecyclerView(binding?.rv)
+    }
+
+    private fun popUpItemChange(context : Context, item : ItemModel? = null, idx : Int) {
+        val dlg = AddItemDialog(context, object : AddItemDialog.ResultCallback {
+            override fun onResult(name: String, price: Int) {
+                viewModel.addItem(ItemModel(name, price, 1, idx))
+            }
+
+            override fun onDelete() {
+                if (item != null) {
+                    viewModel.removeItem(item)
+                }
+            }
+
+        })
+        item?.let {
+            dlg.setText(it.name, it.price)
+            dlg.binding.btnDelete.visibility = View.VISIBLE
+        }
+        dlg.show()
     }
 }

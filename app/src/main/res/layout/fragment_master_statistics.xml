@@ -1,59 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/white"
-    tools:context=".ui.main.MainActivity">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
+   xmlns:tools="http://schemas.android.com/tools">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/btnMonth"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        tools:layout_editor_absoluteX="0dp" />
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefreshLayout"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_margin="10dp"
-        app:layout_constraintBottom_toTopOf="@id/btnMonth"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-            tools:layout_editor_absoluteX="0dp">
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/viewPager"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-    <Button
-        android:id="@+id/btnMonth"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toStartOf="@id/btnDay"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_margin="5dp"
-        android:text="월별"/>
-    <Button
-        android:id="@+id/btnDay"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@id/btnMonth"
-        app:layout_constraintEnd_toStartOf="@id/btnItem"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_margin="5dp"
-        android:text="일별"/>
-    <Button
-        android:id="@+id/btnItem"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@id/btnDay"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_margin="5dp"
-        android:text="아이템별"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <data>
+        <import type="android.view.View"/>
+        <import type="ggack.agitpos.utils.Constants"/>
+        <variable
+           name="vm"
+           type="ggack.agitpos.ui.main.MainViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:background="@color/white"
+       tools:context=".ui.main.MainActivity">
+
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+           android:id="@+id/swipeRefreshLayout"
+           android:layout_width="match_parent"
+           android:layout_height="0dp"
+           android:layout_margin="10dp"
+           app:layout_constraintBottom_toTopOf="@id/btnMonth"
+           app:layout_constraintTop_toTopOf="parent"
+           app:layout_constraintVertical_bias="0.0"
+           tools:layout_editor_absoluteX="0dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+               android:id="@+id/recyclerView"
+               android:layout_width="match_parent"
+               android:layout_height="0dp"
+               app:layout_constraintBottom_toTopOf="@id/btnMonth"
+               app:layout_constraintTop_toTopOf="parent"
+               app:layout_constraintVertical_bias="0.0"
+               tools:layout_editor_absoluteX="0dp" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <Button
+           android:id="@+id/btnMonth"
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           app:layout_constraintEnd_toStartOf="@id/btnDay"
+           app:layout_constraintBottom_toBottomOf="parent"
+           app:layout_constraintStart_toStartOf="parent"
+           android:layout_margin="5dp"
+           android:onClick="@{() -> vm.onSelStatistics(Constants.ACTION_SELECT_STATISTICS_MONTH)}"
+           android:text="월별" />
+
+        <Button
+           android:id="@+id/btnDay"
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           app:layout_constraintStart_toEndOf="@id/btnMonth"
+           app:layout_constraintEnd_toStartOf="@id/btnItem"
+           app:layout_constraintBottom_toBottomOf="parent"
+           android:layout_margin="5dp"
+           android:onClick="@{() -> vm.onSelStatistics(Constants.ACTION_SELECT_STATISTICS_DAY)}"
+           android:text="일별" />
+
+        <Button
+           android:id="@+id/btnItem"
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           app:layout_constraintStart_toEndOf="@id/btnDay"
+           app:layout_constraintEnd_toEndOf="parent"
+           app:layout_constraintBottom_toBottomOf="parent"
+           android:layout_margin="5dp"
+           android:onClick="@{() -> vm.onSelStatistics(Constants.ACTION_SELECT_STATISTICS_ITEM)}"
+           android:text="아이템별" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -41,7 +41,7 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvPoint"
-                android:layout_width="100dp"
+                android:layout_width="80dp"
                 android:layout_height="0dp"
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginVertical="5dp"
@@ -51,7 +51,7 @@
                 app:cardCornerRadius="10dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintDimensionRatio="2"
-                app:layout_constraintEnd_toStartOf="@id/cvPinChange"
+                app:layout_constraintEnd_toStartOf="@id/cvHistory"
                 app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
@@ -64,17 +64,43 @@
                     android:text='@{String.format("￦ %d", vm.liveCurrentUserMoney)}'
                     android:textAlignment="center"
                     android:textColor="@color/darkGray"
-                    android:textSize="15sp" />
+                    android:textSize="14sp" />
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
+               android:id="@+id/cvHistory"
+               android:layout_width="40dp"
+               android:layout_height="0dp"
+               android:layout_marginHorizontal="10dp"
+               android:layout_marginVertical="5dp"
+               android:background="@color/primary"
+               android:minWidth="50dp"
+               android:padding="10dp"
+               app:cardCornerRadius="10dp"
+               app:layout_constraintBottom_toBottomOf="parent"
+               app:layout_constraintDimensionRatio="1"
+               app:layout_constraintEnd_toStartOf="@id/cvPinChange"
+               app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                   android:id="@+id/tvHistory"
+                   android:layout_width="match_parent"
+                   android:layout_height="match_parent"
+                   android:layout_weight="1"
+                   android:background="@color/secondaryVarient"
+                   android:gravity="center"
+                   android:text="결제이력"
+                   android:textAlignment="center"
+                   android:textColor="@color/darkGray"
+                   android:textSize="10sp" />
+            </androidx.cardview.widget.CardView>
+            <androidx.cardview.widget.CardView
                 android:id="@+id/cvPinChange"
-                android:layout_width="50dp"
+                android:layout_width="40dp"
                 android:layout_height="0dp"
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginVertical="5dp"
                 android:background="@color/primary"
-                android:minWidth="50dp"
                 android:padding="10dp"
                 app:cardCornerRadius="10dp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -92,17 +118,16 @@
                     android:text="PIN\n변경"
                     android:textAlignment="center"
                     android:textColor="@color/darkGray"
-                    android:textSize="12sp" />
+                    android:textSize="10sp" />
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvTimeOut"
-                android:layout_width="50dp"
+                android:layout_width="40dp"
                 android:layout_height="0dp"
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginVertical="5dp"
                 android:background="@color/primary"
-                android:minWidth="50dp"
                 android:padding="10dp"
                 app:cardCornerRadius="10dp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -124,7 +149,7 @@
                         android:text="1:00"
                         android:textAlignment="textEnd"
                         android:textColor="@color/black"
-                        android:textSize="15sp" />
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/tvLogOut"
@@ -133,7 +158,7 @@
                         android:text="로그아웃"
                         android:textAlignment="textEnd"
                         android:textColor="@color/black"
-                        android:textSize="10sp" />
+                        android:textSize="8sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,13 +2,18 @@ package ggack.agitpos.ui.main
 
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
+import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.InputFilter
+import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -27,6 +32,8 @@ import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.adapter.PaymentAdapter
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.ui.dialog.SimpleDialog
+import ggack.agitpos.ui.dialog.SimpleListDialog
+import ggack.agitpos.utils.Utils
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -47,6 +54,9 @@ class MainClientFragment : Fragment() {
     private var mUser : UserModel? = null
     private var mTotal = 0
     private val mListItems = mutableListOf<ItemModel>()
+    private var mListHistory = mutableListOf<String>()
+    private var mDlgHistory : SimpleListDialog? = null
+
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentMainClientBinding.inflate(inflater, container, false)
         binding?.vm = viewModel
@@ -71,7 +81,17 @@ class MainClientFragment : Fragment() {
             activity?.onBackPressed()
         }
         binding?.cvPinChange?.setOnClickListener {
-            viewModel.popUpChangePin(requireContext())
+            popUpChangePin(requireContext())
+        }
+        binding?.cvHistory?.setOnClickListener {
+            mDlgHistory = SimpleListDialog(requireContext(), mListHistory) {}
+            mDlgHistory?.setListMargin(0)
+            mDlgHistory?.setListTextSize(10)
+            mDlgHistory?.setOnRefreshListener {
+                firebaseComm.getPrevHistory()
+                mDlgHistory?.setRefresh(false)
+            }
+            mDlgHistory?.show()
         }
         binding?.btnPayment?.setOnClickListener {
             val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
@@ -113,10 +133,38 @@ class MainClientFragment : Fragment() {
                     if (item.name == "월간 회원권")
                         n = i
                 }
-                if(n >= 0 && LocalDateTime.now().dayOfMonth > 15)
+                if(n >= 0 && LocalDateTime.now().dayOfMonth > 20)
                     mListItems.removeAt(n)
+                if(viewModel.liveCurrentUserSupervisor.value == true)
+                    mListItems.add(ItemModel("운영진 출첵", 0, 1))
                 binding?.rvItems?.adapter?.notifyDataSetChanged()
             }
+        }
+        viewModel.liveCurrentUserBonus.observe(viewLifecycleOwner) {
+
+        }
+        viewModel.liveCurrentUserSupervisor.observe(viewLifecycleOwner) {
+
+        }
+        viewModel.liveHistoryByName.observe(viewLifecycleOwner) {
+            it?.get(viewModel.liveCurrentUserName.value?:"")?.let { list ->
+                val newList = mutableListOf<String>()
+                list.sortBy { it.date }
+                list.forEach { item ->
+                    val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("yy.MM.dd일 HH:mm:ss"))
+                    var text = "$date : [${item.kind}]"
+                    if(item.money != 0)
+                        text += " [금액 : ${item.money}]"
+                    if(item.item?.keys != null && item.item?.keys?.isNotEmpty() == true)
+                        text += " ${item.item?.keys}"
+                    if(item.etc.isNotEmpty())
+                        text += " [기타 : ${item.etc}]"
+                    newList.add(text)
+                }
+                mListHistory = newList
+            }
+            if(mDlgHistory?.isShowing() == true)
+                mDlgHistory?.refreshList(mListHistory)
         }
     }
     fun initItemAdapter() {
@@ -127,6 +175,8 @@ class MainClientFragment : Fragment() {
                 val position = mListPayment.has(key)
                 if(position >= 0) {
                     mListPayment[position].cnt++
+                    if(mListPayment[position].name == "운영진 출첵")
+                        mListPayment[position].cnt = 1
                     binding?.rvSelectedItems?.adapter?.notifyItemChanged(position)
                 } else {
                     mListPayment.add((item as ItemModel).copy())
@@ -185,4 +235,25 @@ class MainClientFragment : Fragment() {
         super.onPause()
     }
 
+
+    private fun popUpChangePin(context : Context, name : String = viewModel.liveCurrentUserName.value?:"") {
+        val editText = EditText(context)
+        editText.inputType = InputType.TYPE_CLASS_NUMBER
+        editText.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        editText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(4))
+        val dlg = AlertDialog.Builder(context).setView(editText).setTitle("Pin 수정").setPositiveButton("OK"
+        ) { _, _ ->
+            if(editText.text.length != 4) {
+                Toast.makeText(context, "짧습니다", Toast.LENGTH_SHORT).show()
+            } else {
+                try {
+                    firebaseComm.changePin(name, editText.text.toString())
+                    Toast.makeText(context, "수정 성공", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "수정 실패", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        dlg.show()
+    }
 }
