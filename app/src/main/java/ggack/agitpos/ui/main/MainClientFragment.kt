@@ -34,6 +34,10 @@ import ggack.agitpos.utils.Constants
 import ggack.agitpos.ui.dialog.SimpleDialog
 import ggack.agitpos.ui.dialog.SimpleListDialog
 import ggack.agitpos.utils.Utils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -136,7 +140,7 @@ class MainClientFragment : Fragment() {
                 if(n >= 0 && LocalDateTime.now().dayOfMonth > 20)
                     mListItems.removeAt(n)
                 if(viewModel.liveCurrentUserSupervisor.value == true)
-                    mListItems.add(ItemModel("운영진 출첵 ${viewModel.liveCurrentUserBonus.value}/8", 0, 1))
+                    mListItems.add(ItemModel("운영진 출첵 ${(viewModel.liveCurrentUserBonus.value?:0) % 100}/8", 0, 1))
                 binding?.rvItems?.adapter?.notifyDataSetChanged()
             }
         }
@@ -147,24 +151,35 @@ class MainClientFragment : Fragment() {
 
         }
         viewModel.liveHistoryByName.observe(viewLifecycleOwner) {
-            it?.get(viewModel.liveCurrentUserName.value?:"")?.let { list ->
-                val newList = mutableListOf<String>()
-                list.sortBy { it.date }
-                list.forEach { item ->
-                    val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("yy.MM.dd일 HH:mm:ss"))
-                    var text = "$date : [${item.kind}]"
-                    if(item.money != 0)
-                        text += " [금액 : ${item.money}]"
-                    if(item.item?.keys != null && item.item?.keys?.isNotEmpty() == true)
-                        text += " ${item.item?.keys}"
-                    if(item.etc.isNotEmpty())
-                        text += " [기타 : ${item.etc}]"
-                    newList.add(text)
+            CoroutineScope(Dispatchers.Main).launch {
+                var n = 0
+                while((viewModel.liveCurrentUserName.value ?: "") == "") {
+                    delay(100)
+                    if(n++ > 20)
+                        return@launch
                 }
-                mListHistory = newList
+                it?.get(viewModel.liveCurrentUserName.value?:"")?.let { list ->
+                    val newList = mutableListOf<String>()
+                    list.sortBy { it.date }
+                    list.forEach { item ->
+                        val date = Utils.getDate(item.date).format(DateTimeFormatter.ofPattern("yy.MM.dd일 HH:mm:ss"))
+                        var text = "$date : [${item.kind}]"
+                        if(item.money != 0)
+                            text += " [금액 : ${item.money}]"
+                        if(item.item?.keys != null && item.item?.keys?.isNotEmpty() == true)
+                            text += " ${item.item?.keys}"
+                        if(item.etc.isNotEmpty())
+                            text += " [기타 : ${item.etc}]"
+                        newList.add(text)
+                    }
+                    mListHistory = newList
+                }
+                Handler(Looper.getMainLooper()).post {
+                    if(mDlgHistory?.isShowing() == true)
+                        mDlgHistory?.refreshList(mListHistory)
+                }
+
             }
-            if(mDlgHistory?.isShowing() == true)
-                mDlgHistory?.refreshList(mListHistory)
         }
     }
     fun initItemAdapter() {

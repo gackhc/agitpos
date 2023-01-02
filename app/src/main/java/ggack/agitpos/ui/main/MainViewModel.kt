@@ -42,7 +42,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
     val liveCurrentUserName = MutableLiveData("")
     val liveCurrentUserMonthly = MutableLiveData(false)
     val liveCurrentUserSupervisor = MutableLiveData(false)
-    val liveCurrentUserBonus = MutableLiveData(2022120100)
+    val liveCurrentUserBonus = MutableLiveData(2022120100L)
     fun init(isAutoStartOn : Boolean) {
         liveUserData = Transformations.map(firebaseComm.liveUserList){it}
         liveDeposits = Transformations.map(firebaseComm.liveDeposits){it}
@@ -140,8 +140,8 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
         var total = 0
         list.forEach {model->
             if(model.name.contains("운영진 출첵")) {
-                var bonus = liveCurrentUserBonus.value?:2022120100
-                val cnt = bonus % 100
+                var bonus = liveCurrentUserBonus.value?:2022120100L
+                val cnt = bonus % 100L
                 val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
                 val date = LocalDate.parse(Math.floorDiv(bonus, 100).toString(), dtf)
                 val today = LocalDate.now()
@@ -151,16 +151,16 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
                     if(date.monthValue == today.monthValue) {
                         //8번 이상이면 x
                         if(cnt < 8) {
-                            map[String.format("%s %d/8", model.name, bonus + 1)] = model.getMap()
-                            firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0) + 5000, bonus + 1)
+                            map[String.format("운영진 출첵 %d|8", cnt + 1)] = model.getMap()
+                            firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0) + 5000, today.format(dtf).toLong() * 100L + cnt + 1L)
                             liveCurrentUserMoney.postValue((liveCurrentUserMoney.value?:0) + 5000)
                         } else {
-                            map[String.format("%s %d/8", model.name, bonus + 1)] = model.getMap()
-                            firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0), bonus + 1)
+                            map[String.format("운영진 출첵 %d|8", cnt + 1)] = model.getMap()
+                            firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0), today.format(dtf).toLong() * 100L + cnt + 1L)
                         }
                     } else {
-                        map[String.format("%s 1/8", model.name)] = model.getMap()
-                        firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0) + 5000, (today.format(dtf) + "1").toInt())
+                        map[String.format("운영진 출첵 1|8", model.name)] = model.getMap()
+                        firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0) + 5000, today.format(dtf).toLong() * 100L + 1L)
                         liveCurrentUserMoney.postValue((liveCurrentUserMoney.value?:0) + 5000)
                     }
                 }

@@ -239,7 +239,7 @@ class FirebaseComm @Inject constructor(){
                 }
         }
     }
-    fun setSvBonus(name : String, money : Int, bonus : Int) {
+    fun setSvBonus(name : String, money : Int, bonus : Long) {
         mID?.let { id ->
             mDatabase.child(id).child("users").child(name.lowercase()).child("svBonus").setValue(bonus)
                 .addOnSuccessListener {
@@ -261,7 +261,7 @@ class FirebaseComm @Inject constructor(){
         }
     }
 
-    var searchHistoryMonth = LocalDate.now()
+    private var searchHistoryMonth: LocalDate = LocalDate.now()
     fun getPrevHistory() { // DateTimeFormatter.ofPattern("yyyyMM")
         mID?.let { it ->
             searchHistoryMonth = searchHistoryMonth.minusMonths(1)
