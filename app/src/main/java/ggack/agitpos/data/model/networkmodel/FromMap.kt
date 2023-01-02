@@ -11,7 +11,7 @@ object FromMap {
         map["member"] as String?,
         map["extraName"] as String?,
         map["isSupervisor"] as Boolean?,
-        ((map["svBonus"] as Long?)?:202212010).toInt(),)
+        ((map["svBonus"] as Long?)?:2022120100).toInt(),)
 
     fun toHistoryModel(map : Map<String, Any?>) : HistoryModel
             = HistoryModel(map["date"] as Long,

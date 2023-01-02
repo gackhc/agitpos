@@ -136,7 +136,7 @@ class MainClientFragment : Fragment() {
                 if(n >= 0 && LocalDateTime.now().dayOfMonth > 20)
                     mListItems.removeAt(n)
                 if(viewModel.liveCurrentUserSupervisor.value == true)
-                    mListItems.add(ItemModel("운영진 출첵", 0, 1))
+                    mListItems.add(ItemModel("운영진 출첵 ${viewModel.liveCurrentUserBonus.value}/8", 0, 1))
                 binding?.rvItems?.adapter?.notifyDataSetChanged()
             }
         }
@@ -175,7 +175,7 @@ class MainClientFragment : Fragment() {
                 val position = mListPayment.has(key)
                 if(position >= 0) {
                     mListPayment[position].cnt++
-                    if(mListPayment[position].name == "운영진 출첵")
+                    if(mListPayment[position].name.contains("운영진 출첵"))
                         mListPayment[position].cnt = 1
                     binding?.rvSelectedItems?.adapter?.notifyItemChanged(position)
                 } else {

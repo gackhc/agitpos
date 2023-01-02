@@ -42,7 +42,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
     val liveCurrentUserName = MutableLiveData("")
     val liveCurrentUserMonthly = MutableLiveData(false)
     val liveCurrentUserSupervisor = MutableLiveData(false)
-    val liveCurrentUserBonus = MutableLiveData(202212010)
+    val liveCurrentUserBonus = MutableLiveData(2022120100)
     fun init(isAutoStartOn : Boolean) {
         liveUserData = Transformations.map(firebaseComm.liveUserList){it}
         liveDeposits = Transformations.map(firebaseComm.liveDeposits){it}
@@ -105,7 +105,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
         liveCurrentUserMoney.postValue(user.money)
         liveCurrentUserMonthly.postValue(user.member == LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
         liveCurrentUserSupervisor.postValue(user.isSupervisor == true)
-        liveCurrentUserBonus.postValue(user.svBonus?:202212010)
+        liveCurrentUserBonus.postValue(user.svBonus?:2022120100)
     }
 
     fun setAccount(context: Context, account : String, name : String, kakaoPay : String) {
@@ -139,11 +139,11 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
         val map = mutableMapOf<String, Map<String, Any>>()
         var total = 0
         list.forEach {model->
-            if(model.name == "운영진 출첵") {
-                var bonus = liveCurrentUserBonus.value?:202212010
-                val cnt = bonus % 10
+            if(model.name.contains("운영진 출첵")) {
+                var bonus = liveCurrentUserBonus.value?:2022120100
+                val cnt = bonus % 100
                 val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
-                val date = LocalDate.parse(Math.floorDiv(bonus, 10).toString(), dtf)
+                val date = LocalDate.parse(Math.floorDiv(bonus, 100).toString(), dtf)
                 val today = LocalDate.now()
                 //같은날이면 x
                 if(date.isBefore(today)) {
@@ -154,6 +154,9 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
                             map[String.format("%s %d/8", model.name, bonus + 1)] = model.getMap()
                             firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0) + 5000, bonus + 1)
                             liveCurrentUserMoney.postValue((liveCurrentUserMoney.value?:0) + 5000)
+                        } else {
+                            map[String.format("%s %d/8", model.name, bonus + 1)] = model.getMap()
+                            firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0), bonus + 1)
                         }
                     } else {
                         map[String.format("%s 1/8", model.name)] = model.getMap()

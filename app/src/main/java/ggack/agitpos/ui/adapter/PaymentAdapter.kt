@@ -17,7 +17,7 @@ class PaymentAdapter(var list : MutableList<ItemModel>, val listener : ListListe
                     val p = list.position(item.name)
                     if(p >= 0) {
                         item.cnt++
-                        if(item.name == "운영진 출첵")
+                        if(item.name.contains("운영진 출첵"))
                             item.cnt = 1
                         notifyItemChanged(p)
                         listener.onChange(p)
