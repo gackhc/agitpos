@@ -89,24 +89,4 @@ class MainActivity : BaseActivity() {
             }
         }
      }
-
-    override fun onPause() {
-        super.onPause()
-        if(Utils.isAppIsInBackground(this)) {
-            Log.e("debug", "onMoveToBackground")
-            val coroutine = CoroutineScope(Dispatchers.Main).launch {
-                delay(5000)
-                baseContext.startActivity(Intent(baseContext, LoginActivity::class.java))
-            }
-            val dlg = SimpleDialog(baseContext, SimpleDialog.TYPE_ONE_BUTTON) {
-                when (it) {
-                    RESULT_OK -> {
-                        coroutine.cancel()
-                    }
-                }
-            }
-            dlg.setText("앱 창을 다시 실행합니다. 재실행을 원치않는다면 5초안에 확인을 눌러주세요")
-            dlg.show()
-        }
-    }
 }

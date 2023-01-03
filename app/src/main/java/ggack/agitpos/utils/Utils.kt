@@ -18,6 +18,8 @@ import java.time.ZoneOffset
 import android.content.ComponentName
 
 import android.os.Build
+import android.os.Looper
+import kotlinx.coroutines.*
 
 object Utils {
     private var mDlg : ProgressDialog? = null
@@ -32,17 +34,27 @@ object Utils {
         Toast.makeText(context, str, Toast.LENGTH_SHORT).show()
     }
 
+    private var startTime = System.currentTimeMillis()
+    private var job = CoroutineScope(Dispatchers.Main)
     fun showWaitDialog(context: Context, str : String = "Loading...") {
         if(mDlg == null)
             mDlg = ProgressDialog(context)
         mDlg?.setCancelable(false)
         mDlg?.setMessage(str)
         mDlg?.setProgressStyle(R.style.Widget_ProgressBar_Horizontal)
-        mHandler.sendEmptyMessageDelayed(MSG_DISMISS_WAIT_DIALOG, 5000)
+        if(job.isActive)
+            job.cancel()
+        job.launch {
+            delay(5000)
+            Handler(Looper.getMainLooper()).post {
+                dismissWaitDialog()
+            }
+        }
     }
 
     fun dismissWaitDialog() {
-        mHandler.removeMessages(MSG_DISMISS_WAIT_DIALOG)
+        if(job.isActive)
+            job.cancel()
         mDlg?.dismiss()
         mDlg = null
     }
@@ -131,15 +143,4 @@ object Utils {
         }
         return isInBackground
     }
-
-
-    private val mHandler = Handler() {
-        when(it.what) {
-            MSG_DISMISS_WAIT_DIALOG -> {
-                dismissWaitDialog()
-            }
-        }
-        true
-    }
-
 }
