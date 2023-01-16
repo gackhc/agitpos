@@ -60,54 +60,92 @@ import javax.inject.Inject
      override fun onNotificationPosted(sbn: StatusBarNotification?) {
          super.onNotificationPosted(sbn)
          Log.e("onNotificationPosted", "${sbn?.packageName} : ${sbn?.notification?.extras}")
-         if(sbn?.packageName == "com.kakao.talk") {
+         if(sbn?.packageName?.contains("kakaopay") == true) {
              val body = sbn?.notification?.extras?.getString("android.text")
-             if (body?.contains("코드송금 받기가 완료되었습니다.") == true) {
-                 val strArray = body.split("\n")
+             if (body?.contains("보냈어요") == true) {
+                 try {
+                     val strArray = body.split("\n")
+                     val nickName = strArray[1]
+                     val money = strArray[0].replace("  ", " ").replace(",", "").split(" ").get(1).replace("원을", "").toInt()
+                     val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
+                     mUserPrepared = false
+                     firebaseComm.getUsers()
+                     CoroutineScope(Dispatchers.Main).launch {
+                         while (!mUserPrepared) {
+                             delay(10)
+                         }
+                         val name = mUserList?.containsName(model.name)
+                         if (name != null) {
+                             val user = FromMap.toUserModel(mUserList!![name]!!)
+                             val money = user.money + model.money
+                             firebaseComm.setMoney(name, money)
 
-                 var nickName : String? = null
-                 var money : Int? = null
-                 for(str in strArray) {
-                     if(str.contains("받은금액 :")) {
-                         money =
-                         str.replace("- 받은금액 : ", "")
-                             .replace(",", "")
-                             .replace("원", "").toInt()
-                     } else if(str.contains("메시지 :")) {
-                         nickName =
-                             str.trim().replace("- 메시지 : ", "").lowercase()
+                             val historyModel = HistoryModel(
+                                 System.currentTimeMillis(),
+                                 name,
+                                 Constants.HISTORY_DEPOSIT,
+                                 model.money,
+                                 mapOf(),
+                                 "카카오페이"
+                             )
+                             firebaseComm.addHistory(historyModel)
+                         } else {
+                             firebaseComm.addDepositItem(model)
+                         }
                      }
+                 } catch (e : Exception) {
+                     Log.e("error", body)
                  }
-                if(nickName != null && money != null) {
-                    val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
-                    mUserPrepared = false
-                    firebaseComm.getUsers()
-                    CoroutineScope(Dispatchers.Main).launch {
-                        while (!mUserPrepared) {
-                            delay(10)
-                        }
-                        val name = mUserList?.containsName(model.name)
-                        if (name != null) {
-                            val user = FromMap.toUserModel(mUserList!![name]!!)
-                            val money = user.money + model.money
-                            firebaseComm.setMoney(name, money)
-
-                            val historyModel = HistoryModel(
-                                System.currentTimeMillis(),
-                                name,
-                                Constants.HISTORY_DEPOSIT,
-                                model.money,
-                                mapOf(),
-                                "카카오페이"
-                            )
-                            firebaseComm.addHistory(historyModel)
-                        } else {
-                            firebaseComm.addDepositItem(model)
-                        }
-                    }
-                }
              }
-         } else if(sbn?.packageName == "com.samsung.android.messaging") {
+         }
+//         else if(sbn?.packageName == "com.kakao.talk") {
+//             val body = sbn?.notification?.extras?.getString("android.text")
+//             if (body?.contains("코드송금 받기가") == true) {
+//                 val strArray = body.split("\n")
+//                 var nickName : String? = null
+//                 var money : Int? = null
+//                 for(str in strArray) {
+//                     if(str.contains("받은금액 :")) {
+//                         money =
+//                         str.replace("- 받은금액 : ", "")
+//                             .replace(",", "")
+//                             .replace("원", "").toInt()
+//                     } else if(str.contains("메시지 :")) {
+//                         nickName =
+//                             str.trim().replace("- 메시지 : ", "").lowercase()
+//                     }
+//                 }
+//                if(nickName != null && money != null) {
+//                    val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
+//                    mUserPrepared = false
+//                    firebaseComm.getUsers()
+//                    CoroutineScope(Dispatchers.Main).launch {
+//                        while (!mUserPrepared) {
+//                            delay(10)
+//                        }
+//                        val name = mUserList?.containsName(model.name)
+//                        if (name != null) {
+//                            val user = FromMap.toUserModel(mUserList!![name]!!)
+//                            val money = user.money + model.money
+//                            firebaseComm.setMoney(name, money)
+//
+//                            val historyModel = HistoryModel(
+//                                System.currentTimeMillis(),
+//                                name,
+//                                Constants.HISTORY_DEPOSIT,
+//                                model.money,
+//                                mapOf(),
+//                                "카카오페이"
+//                            )
+//                            firebaseComm.addHistory(historyModel)
+//                        } else {
+//                            firebaseComm.addDepositItem(model)
+//                        }
+//                    }
+//                }
+//             }
+//         }
+         else if(sbn?.packageName == "com.samsung.android.messaging") {
              val body = sbn?.notification?.extras?.getString("android.text")?:""
              val bankAccount = Utils.getPref(this, "bankAccount")
              if (body.contains("[카카오뱅크]") && body.contains("입금") && body.contains("($bankAccount)")) {
