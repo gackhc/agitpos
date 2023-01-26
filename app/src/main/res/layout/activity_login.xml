@@ -97,7 +97,8 @@
          android:layout_marginTop="50dp"
          android:textColor="@color/black"
          android:text="반드시 위 목록과 일치하는 ※닉네임※ 으로"
-         app:setAccountTextVisibility = "@{vm.liveAccount}"
+          app:bankAccount = "@{vm.liveAccount}"
+          app:viewMode = "@{vm.liveShowBankAccount}"
          app:layout_constraintTop_toBottomOf="@id/llPassword"
          app:layout_constraintEnd_toEndOf="@id/llName" />
 
@@ -109,7 +110,8 @@
          android:textSize="22sp"
          android:textColor="@color/black"
          app:setAccountText = "@{vm.liveAccount}"
-         app:setAccountTextVisibility = "@{vm.liveAccount}"
+          app:bankAccount = "@{vm.liveAccount}"
+          app:viewMode = "@{vm.liveShowBankAccount}"
          app:layout_constraintTop_toBottomOf="@id/tv2"
          app:layout_constraintEnd_toEndOf="@id/llName" />
 
@@ -119,7 +121,8 @@
          android:layout_height="wrap_content"
          android:background="@color/white"
          android:text="으로 입금해주세요"
-         app:setAccountTextVisibility = "@{vm.liveAccount}"
+         app:bankAccount = "@{vm.liveAccount}"
+          app:viewMode = "@{vm.liveShowBankAccount}"
          app:layout_constraintTop_toBottomOf="@id/tvBankAccount"
          app:layout_constraintEnd_toEndOf="@id/llName" />
 
@@ -128,10 +131,10 @@
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
          android:background="@color/white"
-         android:visibility="@{vm.liveShowBankAccount ? View.VISIBLE : View.GONE}"
          android:layout_marginTop="10dp"
          android:text="아래 카카오페이도 됩니다(※카카오톡으로 보내시면 안됩니다.)"
-         app:setKakaoTextVisibility = "@{vm.liveAccount}"
+         app:kakaoPayAccount = "@{vm.liveAccount}"
+         app:viewMode = "@{vm.liveShowBankAccount}"
          app:layout_constraintTop_toBottomOf="@id/tv3"
          app:layout_constraintEnd_toEndOf="@id/llName" />
 
@@ -142,7 +145,8 @@
          android:scaleType="fitCenter"
          android:adjustViewBounds="true"
          android:src="@drawable/qr"
-         android:visibility="@{vm.liveShowBankAccount ? View.VISIBLE : View.GONE}"
+         app:kakaoPayAccount="@{vm.liveAccount}"
+         app:viewMode="@{vm.liveShowBankAccount}"
          app:setKakaoQR="@{vm.liveAccount}"
          app:layout_constraintTop_toBottomOf="@+id/tv4"
          app:layout_constraintStart_toStartOf="parent"
@@ -172,6 +176,14 @@
          app:layout_constraintBottom_toBottomOf="parent"
          android:text="@{vm.liveShowBankAccount ? @string/showHistory : @string/showBankAccount }"
          android:onClick="@{() -> vm.onShowBankAccountBtnClick()}" />
+
+       <Button
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           app:layout_constraintTop_toTopOf="parent"
+           app:layout_constraintEnd_toEndOf="parent"
+           android:text="회원등록"
+           android:onClick="@{() -> vm.onAddAccount()}" />
 
       <androidx.recyclerview.widget.RecyclerView
          android:id="@+id/rvNickName"

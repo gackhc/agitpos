@@ -86,6 +86,13 @@ class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm)
     fun onShowBankAccountBtnClick() {
         _liveShowBankAccount.postValue(!(_liveShowBankAccount.value?:true))
     }
+
+    fun addUser(userName : String) {
+        firebaseComm.addUser(userName)
+    }
+    fun onAddAccount() {
+        liveEvent.postValue(EventModel(Constants.ACTION_ADD_USER_ACCOUNT))
+    }
     fun setIdsVisibility(visible : Boolean) {
         Log.e("debug", "setIdsVisibility $visible")
         _liveIdsVisible.postValue(visible)

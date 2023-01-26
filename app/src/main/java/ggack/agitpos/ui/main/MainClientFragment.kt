@@ -1,5 +1,6 @@
 package ggack.agitpos.ui.main
 
+import Singleton.isDuplicated
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
@@ -32,6 +33,7 @@ import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.adapter.PaymentAdapter
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.ui.dialog.SimpleDialog
+import ggack.agitpos.ui.dialog.SimpleEditDialog
 import ggack.agitpos.ui.dialog.SimpleListDialog
 import ggack.agitpos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
@@ -86,6 +88,23 @@ class MainClientFragment : Fragment() {
         }
         binding?.cvPinChange?.setOnClickListener {
             popUpChangePin(requireContext())
+        }
+        binding?.cvNickNameChange?.setOnClickListener {
+            val dlg = SimpleEditDialog(requireContext(), SimpleEditDialog.TYPE_ONE_BUTTON) { result, data ->
+                if(data.isNotEmpty()) {
+                    if(data.isNotEmpty()) {
+                        if (viewModel.liveUserData.value?.isDuplicated(viewModel.liveCurrentUserName.value?:"", data) == true)
+                            Toast.makeText(requireContext(), "이름이 중복됩니다", Toast.LENGTH_SHORT)
+                                .show()
+                        else
+                            firebaseComm.setExtraName(viewModel.liveCurrentUserName.value?:"", data)
+                    }
+                }
+            }
+            dlg.setText("별도로 설정할 입금자명을 입력해주세요")
+            if(!viewModel.liveCurrentUserExtraName.value.isNullOrEmpty())
+                dlg.setEditText(viewModel.liveCurrentUserExtraName.value?:"")
+            dlg.show()
         }
         binding?.cvHistory?.setOnClickListener {
             mDlgHistory = SimpleListDialog(requireContext(), mListHistory) {}

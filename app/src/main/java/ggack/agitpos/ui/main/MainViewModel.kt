@@ -40,6 +40,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
 
     val liveCurrentUserMoney = MutableLiveData(0)
     val liveCurrentUserName = MutableLiveData("")
+    val liveCurrentUserExtraName = MutableLiveData("")
     val liveCurrentUserMonthly = MutableLiveData(false)
     val liveCurrentUserSupervisor = MutableLiveData(false)
     val liveCurrentUserBonus = MutableLiveData(2022120100L)
@@ -102,6 +103,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
 
     fun setUser(name : String, user : UserModel) {
         liveCurrentUserName.postValue(name)
+        liveCurrentUserExtraName.postValue(user.extraName)
         liveCurrentUserMoney.postValue(user.money)
         liveCurrentUserMonthly.postValue(user.member == LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
         liveCurrentUserSupervisor.postValue(user.isSupervisor == true)

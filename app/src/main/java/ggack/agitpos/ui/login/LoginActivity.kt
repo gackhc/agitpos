@@ -1,6 +1,8 @@
 package ggack.agitpos.ui.login
 
 import Singleton
+import Singleton.isDuplicated
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -8,6 +10,8 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.NotificationManagerCompat
 import androidx.databinding.DataBindingUtil
@@ -194,6 +198,9 @@ class LoginActivity : BaseActivity() {
                         startActivity(intent)
                     }
                 }
+                Constants.ACTION_ADD_USER_ACCOUNT -> {
+                    popupAddUser(this)
+                }
             }
         }
     }
@@ -261,5 +268,24 @@ class LoginActivity : BaseActivity() {
             binding.rvNickName.visibility = View.GONE
         }
         binding.rvHistory.adapter = mHistoryAdapter
+    }
+
+
+    private fun popupAddUser(context : Context) {
+        val editText = EditText(context)
+        val dlg = android.app.AlertDialog.Builder(context).setView(editText).setTitle("유저 추가").setPositiveButton("OK"
+        ) { _, _ ->
+            if(editText.text.toString().isNotEmpty()) {
+                if (viewModel.liveUserData.value?.isDuplicated(
+                        editText.text.toString(),
+                        editText.text.toString()
+                    ) == true
+                )
+                    Toast.makeText(context, "이름이 중복됩니다", Toast.LENGTH_SHORT).show()
+                else
+                    viewModel.addUser(editText.text.toString())
+            }
+        }.setNegativeButton("Cancel", null)
+        dlg.show()
     }
 }

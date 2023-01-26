@@ -15,4 +15,5 @@ object Constants {
     const val ACTION_SELECT_STATISTICS_DAY = 8
     const val ACTION_SELECT_STATISTICS_MONTH = 9
     const val ACTION_SELECT_STATISTICS_ITEM = 10
+    const val ACTION_ADD_USER_ACCOUNT = 11
 }
