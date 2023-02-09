@@ -140,6 +140,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
     fun onPayment(list : List<ItemModel>) {
         val map = mutableMapOf<String, Map<String, Any>>()
         var total = 0
+        var money = liveCurrentUserMoney.value?:0
         list.forEach {model->
             if(model.name.contains("운영진 출첵")) {
                 var bonus = liveCurrentUserBonus.value?:2022120100L
@@ -154,17 +155,15 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
                         //8번 이상이면 x
                         if(cnt < 8) {
                             map[String.format("운영진 출첵 %d|8", cnt + 1)] = model.getMap()
-                            firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0) + 5000, today.format(dtf).toLong() * 100L + cnt + 1L)
-                            liveCurrentUserMoney.postValue((liveCurrentUserMoney.value?:0) + 5000)
+                            money += 5000
                         } else {
                             map[String.format("운영진 출첵 %d|8", cnt + 1)] = model.getMap()
-                            firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0), today.format(dtf).toLong() * 100L + cnt + 1L)
                         }
                     } else {
                         map[String.format("운영진 출첵 1|8", model.name)] = model.getMap()
-                        firebaseComm.setSvBonus(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0) + 5000, today.format(dtf).toLong() * 100L + 1L)
-                        liveCurrentUserMoney.postValue((liveCurrentUserMoney.value?:0) + 5000)
+                        money += 5000
                     }
+                    firebaseComm.setSvBonus(liveCurrentUserName.value?:"", money, today.format(dtf).toLong() * 100L + 1L)
                 }
             } else {
                 map[model.name] = model.getMap()
@@ -174,7 +173,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
         if(map.keys.contains("월간 이용권"))
             firebaseComm.setMembership(liveCurrentUserName.value?:"",
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
-        firebaseComm.setMoney(liveCurrentUserName.value?:"", (liveCurrentUserMoney.value?:0) - total)
+        firebaseComm.setMoney(liveCurrentUserName.value?:"", money - total)
         if(map.isNotEmpty()) {
             firebaseComm.addHistory(
                 HistoryModel(

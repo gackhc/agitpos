@@ -243,11 +243,11 @@ class FirebaseComm @Inject constructor(){
         mID?.let { id ->
             mDatabase.child(id).child("users").child(name.lowercase()).child("svBonus").setValue(bonus)
                 .addOnSuccessListener {
-                    mDatabase.child(id).child("users").child(name.lowercase()).child("money").setValue(money)
-                        .addOnSuccessListener {
-                        }.addOnFailureListener {
-                            Log.e(TAG, "Error changePin", it)
-                        }
+//                    mDatabase.child(id).child("users").child(name.lowercase()).child("money").setValue(money)
+//                        .addOnSuccessListener {
+//                        }.addOnFailureListener {
+//                            Log.e(TAG, "Error changePin", it)
+//                        }
                 }.addOnFailureListener {
                     Log.e(TAG, "Error changePin", it)
                 }

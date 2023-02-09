@@ -102,11 +102,17 @@ class StatisticsFragment : Fragment() {
         data.forEach {
             val dateTime = Utils.getDate(it.value.date)
             val kind = it.value.kind
-            val money = it.value.money
+            var money = it.value.money
             val strMonth = dateTime.format(DateTimeFormatter.ofPattern("yyyyMM"))
             val month = dateTime.toLocalDate()
             if(!map.containsKey(strMonth))
                 map[strMonth] = StatisticsMonthModel(month, 0, 0)
+            val items = FromMap.toItemModels(it.value.item?: hashMapOf())
+            items.forEach {model->
+                if(model.name.contains("정산")) {
+                    money -= model.price
+                }
+            }
             when(kind) {
                 "입금" -> map[strMonth]!!.deposit += money
                 "결제" -> map[strMonth]!!.payment += money
@@ -120,11 +126,18 @@ class StatisticsFragment : Fragment() {
         data.forEach {
             val dateTime = Utils.getDate(it.value.date)
             val kind = it.value.kind
-            val money = it.value.money
+            var money = it.value.money
             val strDate = dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
             val date = dateTime.toLocalDate()
             if(!map.containsKey(strDate))
                 map[strDate] = StatisticsModel(date, 0, 0)
+            val items = FromMap.toItemModels(it.value.item?: hashMapOf())
+            items.forEach {model->
+                if(model.name.contains("정산")) {
+                    money -= model.price
+                }
+            }
+
             when(kind) {
                 "입금" -> map[strDate]!!.deposit += money
                 "결제" -> map[strDate]!!.payment += money
@@ -144,12 +157,14 @@ class StatisticsFragment : Fragment() {
                 map[strMonth] = StatisticsItemModel(month, mutableListOf(), 0)
             val list = map[strMonth]?.items?.toMutableList()?: mutableListOf()
             items.forEach {model ->
-                val i = list.contains(model.name)
-                if(i == -1) {
-                    map[strMonth]?.items?.add(model)
-                } else {
-                    map[strMonth]?.items?.get(i)!!.cnt += model.cnt
-                    map[strMonth]?.items?.get(i)!!.price += model.price
+                if(!model.name.contains("정산") && !model.name.contains("출첵")) {
+                    val i = list.contains(model.name)
+                    if (i == -1) {
+                        map[strMonth]?.items?.add(model)
+                    } else {
+                        map[strMonth]?.items?.get(i)!!.cnt += model.cnt
+                        map[strMonth]?.items?.get(i)!!.price += model.price
+                    }
                 }
             }
         }

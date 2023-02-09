@@ -8,8 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.LinearLayout.LayoutParams
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.marginStart
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -188,6 +190,7 @@ class UserListFragment : Fragment() {
 
     private fun popupAddUser(context : Context) {
         val editText = EditText(context)
+        editText.hint = "닉네임을 입력해 주세요"
         val dlg = android.app.AlertDialog.Builder(context).setView(editText).setTitle("유저 추가").setPositiveButton("OK"
         ) { _, _ ->
             if(editText.text.toString().isNotEmpty()) {

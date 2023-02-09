@@ -11,9 +11,12 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.LinearLayout.LayoutParams
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.view.setMargins
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -56,7 +59,7 @@ class LoginActivity : BaseActivity() {
     private var mTimerRefresh : Timer? = null
     private var mAdapter : UserNameAdapter? = null
     private var mHistoryAdapter : HistoryAdapter? = null
-    private var mListHistory = mutableListOf<HistoryModel>()
+    private var mListHistory = LinkedList<HistoryModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_login)
@@ -140,6 +143,7 @@ class LoginActivity : BaseActivity() {
         startActivityForResult(signInIntent, 1000)
     }
 
+    private var firstDate = 0L
     private fun initObserver() {
         viewModel.liveUserData.observe(this) {
             it?.let {
@@ -150,17 +154,21 @@ class LoginActivity : BaseActivity() {
         }
         viewModel.liveHistory.observe(this) {
             val list = it?.values?.toList()?.sortedBy { it.date }?.reversed()
-            list?.let {
-                mListHistory.clear()
-                if(list.size < 10) {
-                    mListHistory.addAll(list)
-                } else {
-                    for(i in 0..9) {
-                        mListHistory.add(list[i])
-                    }
-                }
-                mHistoryAdapter?.notifyDataSetChanged()
-                binding.rvHistory.scrollToPosition(mListHistory.lastIndex)
+            list?.forEach {model->
+                if(mListHistory.size < 30) {
+                    if(mListHistory.isEmpty())
+                        firstDate = model.date
+                    mListHistory.addLast(model)
+                    mHistoryAdapter?.notifyItemInserted(mListHistory.lastIndex)
+                } else if (model.date > firstDate){
+                    mListHistory.removeLast()
+                    mHistoryAdapter?.notifyItemRemoved(mListHistory.lastIndex + 1)
+                    mListHistory.push(model)
+                    mHistoryAdapter?.notifyItemInserted(0)
+                    firstDate = model.date
+                    binding.rvHistory.scrollToPosition(0)
+                } else
+                    return@observe
             }
         }
         viewModel.liveValidate.observe(this) {
@@ -273,6 +281,7 @@ class LoginActivity : BaseActivity() {
 
     private fun popupAddUser(context : Context) {
         val editText = EditText(context)
+        editText.hint = "닉네임을 입력해 주세요"
         val dlg = android.app.AlertDialog.Builder(context).setView(editText).setTitle("유저 추가").setPositiveButton("OK"
         ) { _, _ ->
             if(editText.text.toString().isNotEmpty()) {
