@@ -7,7 +7,7 @@ import android.os.Build
 
 class RebootReceiver : BroadcastReceiver() {
     override fun onReceive(context : Context, intent : Intent) {
-        val i = Intent(context, RestartService::class.java)
+        val i = Intent(context, NotiListenerService::class.java)
         context.startForegroundService(i)
     }
 }

@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -35,13 +36,13 @@ import javax.inject.Inject
      private var mUserList : Map<String, Map<String, Any>>? = null
 
      override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-         startNotiService()
-         return super.onStartCommand(intent, flags, startId)
+         return START_STICKY
      }
 
      override fun onListenerConnected() {
          super.onListenerConnected()
          Log.e("onListenerConnected", "connected")
+         startNotiService()
 
          observerUser = Observer {
              mUserList = it as Map<String, Map<String, Any>>?
@@ -98,53 +99,6 @@ import javax.inject.Inject
                  }
              }
          }
-//         else if(sbn?.packageName == "com.kakao.talk") {
-//             val body = sbn?.notification?.extras?.getString("android.text")
-//             if (body?.contains("코드송금 받기가") == true) {
-//                 val strArray = body.split("\n")
-//                 var nickName : String? = null
-//                 var money : Int? = null
-//                 for(str in strArray) {
-//                     if(str.contains("받은금액 :")) {
-//                         money =
-//                         str.replace("- 받은금액 : ", "")
-//                             .replace(",", "")
-//                             .replace("원", "").toInt()
-//                     } else if(str.contains("메시지 :")) {
-//                         nickName =
-//                             str.trim().replace("- 메시지 : ", "").lowercase()
-//                     }
-//                 }
-//                if(nickName != null && money != null) {
-//                    val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
-//                    mUserPrepared = false
-//                    firebaseComm.getUsers()
-//                    CoroutineScope(Dispatchers.Main).launch {
-//                        while (!mUserPrepared) {
-//                            delay(10)
-//                        }
-//                        val name = mUserList?.containsName(model.name)
-//                        if (name != null) {
-//                            val user = FromMap.toUserModel(mUserList!![name]!!)
-//                            val money = user.money + model.money
-//                            firebaseComm.setMoney(name, money)
-//
-//                            val historyModel = HistoryModel(
-//                                System.currentTimeMillis(),
-//                                name,
-//                                Constants.HISTORY_DEPOSIT,
-//                                model.money,
-//                                mapOf(),
-//                                "카카오페이"
-//                            )
-//                            firebaseComm.addHistory(historyModel)
-//                        } else {
-//                            firebaseComm.addDepositItem(model)
-//                        }
-//                    }
-//                }
-//             }
-//         }
          else if(sbn?.packageName == "com.samsung.android.messaging") {
              val body = sbn?.notification?.extras?.getString("android.text")?:""
              val bankAccount = Utils.getPref(this, "bankAccount")
@@ -207,7 +161,7 @@ import javax.inject.Inject
          style.setSummaryText("")
          builder.setContentText(content)
          builder.setContentTitle(null)
-         builder.setOngoing(true)
+         builder.setOngoing(false)
          builder.setStyle(style)
          builder.setWhen(0)
          builder.setShowWhen(false)
@@ -221,29 +175,33 @@ import javax.inject.Inject
          builder.setContentIntent(pendingIntent)
 
          val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-         val notiChannel = NotificationChannel(getString(R.string.app_name), getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT)
-         notiChannel.vibrationPattern = longArrayOf(0L)
-         notiChannel.enableVibration(false)
-         notiChannel.importance = NotificationManager.IMPORTANCE_LOW
-         manager.createNotificationChannel(notiChannel)
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+             val notiChannel = NotificationChannel(getString(R.string.app_name), getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT)
+             notiChannel.vibrationPattern = longArrayOf(0L)
+             notiChannel.enableVibration(false)
+             notiChannel.importance = NotificationManager.IMPORTANCE_LOW
+             manager.createNotificationChannel(notiChannel)
+         }
          val notification = builder.build()
          startForeground(2102, notification)
      }
 
      // 서비스 재시작 코드
-     override fun onDestroy() {
+     override fun onTaskRemoved(rootIntent: Intent?) {
+         super.onTaskRemoved(rootIntent)
          setAlarmTimer()
-         super.onDestroy()
      }
+
+
      fun setAlarmTimer() {
          val c = Calendar.getInstance()
          c.timeInMillis = System.currentTimeMillis()
          c.add(Calendar.SECOND, 1)
-         val intent = Intent(this, AlarmReceiver::class.java)
+         val intent = Intent(this, RebootReceiver::class.java)
          val sender = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
          val mAlarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
          mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.timeInMillis, sender)
-         Log.e("DepositService", "setAlarmTimer")
+         Log.e("NotiListenerService", "setAlarmTimer")
      }
 
      private fun Map<String, Map<String, Any>>.containsName(name : String) : String? {

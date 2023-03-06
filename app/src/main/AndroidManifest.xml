@@ -44,7 +44,8 @@
         </activity>
 
         <service android:name=".service.NotiListenerService"
-            android:exported="false"
+            android:enabled="true"
+            android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
@@ -59,25 +60,13 @@
             </meta-data>
         </service>
         <service
-           android:name=".service.DepositService"
-           android:enabled="false"
-           android:exported="true" />
-
-        <service
-           android:name=".service.RestartService"
-           android:enabled="true"
-           android:exported="true"
-           />
-        <service
             android:name=".service.RestartActivityService"
             android:enabled="true"
             android:exported="true"
             />
-        <receiver android:name=".service.AlarmReceiver"/>
         <receiver android:name=".service.RebootReceiver"
            android:enabled="true"
-           android:exported="false"
-           android:process=":remote">
+           android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>

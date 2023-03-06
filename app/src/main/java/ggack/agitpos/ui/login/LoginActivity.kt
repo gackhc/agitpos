@@ -11,12 +11,9 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.LinearLayout.LayoutParams
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.view.setMargins
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -34,7 +31,7 @@ import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.databinding.ActivityLoginBinding
 import ggack.agitpos.listener.ListListener
-import ggack.agitpos.service.RestartService
+import ggack.agitpos.service.NotiListenerService
 import ggack.agitpos.ui.adapter.HistoryAdapter
 import ggack.agitpos.ui.adapter.UserNameAdapter
 import ggack.agitpos.ui.base.BaseActivity
@@ -86,7 +83,7 @@ class LoginActivity : BaseActivity() {
             intent.data = Uri.parse("package:" + applicationContext.packageName)
             startActivity(intent)
         }
-        startForegroundService(Intent(this, RestartService::class.java))
+        startForegroundService(Intent(this, NotiListenerService::class.java))
     }
 
     override fun onBackPressed() {

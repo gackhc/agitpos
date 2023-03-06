@@ -16,9 +16,11 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import android.content.ComponentName
+import android.content.Intent
 
 import android.os.Build
 import android.os.Looper
+import ggack.agitpos.service.NotiListenerService
 import kotlinx.coroutines.*
 
 object Utils {
@@ -113,7 +115,7 @@ object Utils {
     fun isServiceRunningCheck(context: Context): Boolean {
         val manager = context.getSystemService(Activity.ACTIVITY_SERVICE) as ActivityManager
         for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-            if ("ggack.agitpos.service.DepositService" == service.service.className) {
+            if ("ggack.agitpos.service.NotiListenerService" == service.service.className) {
                 return true
             }
         }
