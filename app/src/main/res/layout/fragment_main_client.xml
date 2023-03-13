@@ -32,8 +32,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginVertical="10dp"
-                android:text='@{vm.liveCurrentUserMonthly ? String.format("%s (월회원)", vm.liveCurrentUserName) : vm.liveCurrentUserName}'
-                android:textColor='@{vm.liveCurrentUserMonthly ? @color/red : @color/black}'
+                android:text='@{vm.liveCurrentUserMember ? String.format("%s (월회원)", vm.liveCurrentUserName) : vm.liveCurrentUserName}'
+                android:textColor="@{vm.liveCurrentUserMember ? @color/red : @color/black}"
                 android:textSize="20sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -243,10 +243,24 @@
             android:padding="10dp"
             android:fadeScrollbars="false"
             android:scrollbars="vertical"
+            android:background="@{vm.liveCurrentUserMember ? @color/white : @color/lightRed}"
             app:layout_constraintVertical_weight="0.5"
             app:layout_constraintBottom_toTopOf="@id/llBottom"
             app:layout_constraintTop_toBottomOf="@id/rvItems"
             tools:layout_editor_absoluteX="0dp" />
+        <TextView
+            android:id="@+id/tvMember"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="회원권 적용중입니다."
+            android:textSize="30sp"
+            android:alpha="0.5"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="@id/rvSelectedItems"
+            app:layout_constraintBottom_toBottomOf="@id/rvSelectedItems"
+            app:layout_constraintStart_toStartOf="@id/rvSelectedItems"
+            app:layout_constraintEnd_toEndOf="@id/rvSelectedItems"
+            />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

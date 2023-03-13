@@ -25,6 +25,7 @@ import ggack.agitpos.ui.dialog.SimpleEditDialog
 import ggack.agitpos.ui.dialog.SimpleListDialog
 import ggack.agitpos.utils.Utils
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
@@ -134,9 +135,26 @@ class UserListFragment : Fragment() {
                 super.onMember(key, item)
                 item as UserModel
                 currentSelected = key
-                firebaseComm.setMembership(key,
-                    if(item.member != LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
-                        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")) else "")
+
+                val timeLimit = LocalDateTime.now().plusMonths(1).withDayOfMonth(1).plusMinutes(1).withHour(8).withMinute(0)
+                if(item.member?.length == 6) {
+                    val date = item.member + "31"
+                    val format = DateTimeFormatter.ofPattern("yyyyMMdd")
+                    firebaseComm.setMembership(key,
+                        if(LocalDate.now().isBefore(LocalDate.parse(date, format)))
+                            "" else
+                            timeLimit.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+                } else if (item.member?.length == 14) {
+                    val format = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+                    firebaseComm.setMembership(key,
+                        if(LocalDateTime.now().isBefore(LocalDateTime.parse(item.member, format)))
+                            "" else
+                            timeLimit.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")))
+                } else {
+                    firebaseComm.setMembership(key,
+                            timeLimit.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")))
+                }
+
             }
 
             override fun onADD(key: String, item: Any?) {

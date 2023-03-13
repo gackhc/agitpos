@@ -21,17 +21,14 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
-import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.FromMap
-import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.databinding.FragmentMainClientBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.ItemAdapter
 import ggack.agitpos.ui.adapter.PaymentAdapter
-import ggack.agitpos.utils.Constants
 import ggack.agitpos.ui.dialog.SimpleDialog
 import ggack.agitpos.ui.dialog.SimpleEditDialog
 import ggack.agitpos.ui.dialog.SimpleListDialog
@@ -40,7 +37,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -81,6 +77,17 @@ class MainClientFragment : Fragment() {
         initObserver()
         initPaymentAdapter()
         initButtons()
+        initViews()
+    }
+    fun initViews() {
+        binding?.tvMember?.visibility = View.VISIBLE
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(5000)
+            activity?.runOnUiThread {
+                binding?.tvMember?.visibility = View.GONE
+            }
+        }
+
     }
     fun initButtons() {
         binding?.cvTimeOut?.setOnClickListener {
@@ -136,15 +143,24 @@ class MainClientFragment : Fragment() {
     }
 
     fun initObserver() {
-        viewModel.liveCurrentUserMonthly.observe(viewLifecycleOwner) {
-            if(it) {
-                var n = -1
-                for((i, item) in mListItems.withIndex()) {
-                    if (item.name == "월간 회원권")
-                        n = i
+        viewModel.liveCurrentUserMember.observe(viewLifecycleOwner) {
+            if (it) {
+                for (i in mListItems.lastIndex downTo 0) {
+                    if (mListItems[i].name.contains("회원권")) {
+                        mListItems.removeAt(i)
+                        binding?.rvItems?.adapter?.notifyItemRemoved(i)
+                    }
                 }
-                if(n >= 0)
-                    mListItems.removeAt(n)
+                binding?.tvMember?.text = "회원권 적용중입니다. \n${viewModel.liveCurrentUserMemberDate.value}"
+            } else {
+                binding?.tvMember?.text = "이용권 결제가 필요합니다."
+            }
+        }
+        viewModel.liveCurrentUserMemberDate.observe(viewLifecycleOwner) {
+            it?.let {
+                if(viewModel.liveCurrentUserMember.value == true) {
+                    binding?.tvMember?.text = "회원권 적용중입니다. \n$it"
+                }
             }
         }
         viewModel.liveItems.observe(viewLifecycleOwner) {
@@ -158,8 +174,38 @@ class MainClientFragment : Fragment() {
                 }
                 if(n >= 0 && LocalDateTime.now().dayOfMonth > 20)
                     mListItems.removeAt(n)
-                if(viewModel.liveCurrentUserSupervisor.value == true)
-                    mListItems.add(ItemModel("운영진 출첵 ${(viewModel.liveCurrentUserBonus.value?:0) % 100}/8", 0, 1))
+                if (viewModel.liveCurrentUserMember.value == true) {
+                    for (i in mListItems.lastIndex downTo 0) {
+                        if (mListItems[i].name.contains("회원권")) {
+                            mListItems.removeAt(i)
+                        }
+                    }
+                }
+                binding?.rvItems?.adapter?.notifyDataSetChanged()
+                if(viewModel.liveCurrentUserSupervisor.value == true) {
+                    var bonus = viewModel.liveCurrentUserBonus.value?:2022120100L
+                    var cnt = bonus % 100L
+                    val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
+                    val date = LocalDate.parse(Math.floorDiv(bonus, 100).toString(), dtf)
+                    val today = LocalDate.now()
+
+                    //같은날이면 x
+                    if(date.isBefore(today)) {
+                        //새로운달이면 처음부터
+                        //8번 이상이면 x
+                        if (date.monthValue != today.monthValue)
+                            cnt = 0L
+                    }
+                    cnt++
+
+                    mListItems.add(
+                        ItemModel(
+                            "운영진 출첵 $cnt/8",
+                            0,
+                            1
+                        )
+                    )
+                }
                 binding?.rvItems?.adapter?.notifyDataSetChanged()
             }
         }
