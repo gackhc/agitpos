@@ -51,7 +51,7 @@ class MasterChargeFragment : Fragment() {
     private var mListItems =
         mutableListOf(
             ItemModel("일일 이용권", 6000, 1),
-            ItemModel("'월간 이용권", 40000, 1),
+            ItemModel("'월간 회원권", 40000, 1),
             ItemModel("캔음료", 1300, 1),
             ItemModel("라면", 2000, 1),
             ItemModel("고급라면", 2500, 1),
@@ -97,10 +97,10 @@ class MasterChargeFragment : Fragment() {
                                 mListPayment.forEach { model ->
                                     map[model.name] = model.getMap()
                                 }
-                                if (map.keys.contains("월간 이용권"))
+                                if (map.keys.contains("월간 회원권"))
                                     firebaseComm.setMembership(
                                         mUserName,
-                                        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"))
+                                        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
                                     )
                                 firebaseComm.setMoney(mUserName, user.money - mTotal)
                                 firebaseComm.addHistory(

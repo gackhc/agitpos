@@ -32,7 +32,7 @@
            android:layout_margin="10dp"
            android:visibility="@{vm.liveHasMonthlyMemberItem ? View.GONE : View.VISIBLE}"
            android:onClick="@{() -> vm.addMonthlyMemberItem()}"
-           android:text="월간 이용권 항목 추가"
+           android:text="월간 회원권 항목 추가"
            app:layout_constraintBottom_toBottomOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
