@@ -94,5 +94,14 @@
             android:text="@{vm.liveAutoStart ? @string/autoStartUnSet : @string/autoStartSet}"
             app:layout_constraintTop_toBottomOf="@id/btnItemSetting"
             android:onClick="@{(view) -> vm.onSetAutoStart(view)}"/>
+
+        <Button
+           android:id="@+id/btnPin"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_margin="10dp"
+           android:text="마스터 PIN 변경"
+           app:layout_constraintTop_toBottomOf="@id/btnAutoStart"
+           android:onClick="@{(view) -> vm.onSetPin()}"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

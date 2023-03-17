@@ -200,7 +200,7 @@ class MasterChargeFragment : Fragment() {
         if (name != "" && mUserData.contains(name) && !mUserData[name].isNullOrEmpty()) {
             mUser = FromMap.toUserModel(mUserData[name]!!)
             mUserName = name
-            binding?.tvPoint?.text = "${mUser?.money} pt"
+            binding?.tvPoint?.text = "${mUser?.money} ￦"
         }
     }
     private fun initAdapter() {
@@ -256,6 +256,6 @@ class MasterChargeFragment : Fragment() {
         mListPayment.forEach {
             mTotal += it.price * it.cnt
         }
-        binding?.tvTotal?.text = "$mTotal pt"
+        binding?.tvTotal?.text = "$mTotal ￦"
     }
 }

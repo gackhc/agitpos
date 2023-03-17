@@ -1,9 +1,14 @@
 package ggack.agitpos.ui.main
 
 import android.Manifest
+import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
+import android.text.InputFilter
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -96,6 +101,10 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
         }
         firebaseComm.setItems(map)
     }
+    fun changePin(name : String, pin : String) {
+        firebaseComm.changePin(name, pin)
+    }
+
     fun checkDeposits(context : Context) {
         if(Permissions.requestPermission(context, Manifest.permission.READ_SMS, 0, "")) {
             SmsManager.startCheck(context)
@@ -213,6 +222,10 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
     fun onSetQR(v : View) {
 
     }
+    fun onSetPin() {
+        liveEvent.postValue(EventModel(Constants.ACTION_SET_MASTER_PIN))
+    }
+
     fun onSetAutoStart(v : View) {
         _liveAutoStart.postValue(!(liveAutoStart.value?:true))
         Utils.setPref(context, "settingRestart", !(_liveAutoStart.value?:true))

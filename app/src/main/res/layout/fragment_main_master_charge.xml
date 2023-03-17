@@ -49,7 +49,7 @@
                    android:layout_height="match_parent"
                    android:layout_weight="1"
                    android:gravity="center"
-                   android:text="1000 pt"
+                   android:text="1000 ￦"
                    android:textColor="@color/darkGray"
                    android:background="@color/white"
                    android:textAlignment="center"
@@ -110,7 +110,7 @@
            android:layout_gravity="center"
            android:layout_weight="1"
            android:gravity="center"
-           android:text="0 pt"
+           android:text="0 ￦"
            android:textSize="30dp" />
 
         <Button

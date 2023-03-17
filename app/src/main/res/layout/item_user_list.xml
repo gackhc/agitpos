@@ -13,6 +13,10 @@
         <variable
            name="listener"
            type="ggack.agitpos.listener.ListListener" />
+        <variable
+           name="isDebug"
+           type="Boolean" />
+        <import type="android.view.View"/>
     </data>
     <LinearLayout
        android:layout_width="match_parent"
@@ -38,6 +42,7 @@
            android:gravity="center"
            android:text="@{Integer.toString(item.money)}"
            android:layout_marginHorizontal="5dp"
+           android:visibility="visible"
            android:layout_width="match_parent"
            android:layout_height="match_parent" />
 
@@ -48,6 +53,7 @@
            android:padding="0dp"
            android:textSize="8dp"
            android:layout_marginHorizontal="5dp"
+           android:visibility="@{isDebug? View.VISIBLE : View.GONE}"
            android:text="운영진"
            android:onClick="@{()->listener.onSupervisor(name, item)}"
            />

@@ -3,6 +3,7 @@ package ggack.agitpos.ui.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import ggack.agitpos.BuildConfig
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.databinding.ItemUserListBinding
@@ -15,6 +16,7 @@ class UserAdapter(var map : Map<String, Map<String, Any>>, val listener : ListLi
             b.item = item
             b.name = name
             b.listener = listener
+            b.isDebug = BuildConfig.DEBUG
         }
     }
 

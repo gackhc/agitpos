@@ -1,8 +1,14 @@
 package ggack.agitpos.ui.main
 
+import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputFilter
+import android.text.InputType
 import android.util.Log
+import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
@@ -71,6 +77,9 @@ class MainActivity : BaseActivity() {
                 Constants.ACTION_START_FRAGMENT_USER -> {
                     nav?.navController?.navigate(R.id.action_mainMasterFragment_to_userListFragment, null)
                 }
+                Constants.ACTION_SET_MASTER_PIN -> {
+                    popUpChangePin()
+                }
                 Constants.ACTION_SET_USER_ACCOUNT -> {
                     val dlg = AccountDialog(this) { account, name, kakaoPay ->
                         if(account.length < 8) {
@@ -89,4 +98,26 @@ class MainActivity : BaseActivity() {
             }
         }
      }
+
+
+    private fun popUpChangePin() {
+        val editText = EditText(this)
+        editText.inputType = InputType.TYPE_CLASS_NUMBER
+        editText.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        editText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(4))
+        val dlg = AlertDialog.Builder(this).setView(editText).setTitle("Pin 수정").setPositiveButton("OK"
+        ) { _, _ ->
+            if(editText.text.length != 4) {
+                Toast.makeText(this, "짧습니다", Toast.LENGTH_SHORT).show()
+            } else {
+                try {
+                    viewModel.changePin("*master", editText.text.toString())
+                    Toast.makeText(this, "수정 성공", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(this, "수정 실패", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        dlg.show()
+    }
 }

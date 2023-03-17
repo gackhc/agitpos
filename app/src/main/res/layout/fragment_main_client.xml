@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginVertical="10dp"
-                android:text='@{vm.liveCurrentUserMember ? String.format("%s (월회원)", vm.liveCurrentUserName) : vm.liveCurrentUserName}'
+                android:text='@{vm.liveCurrentUserMember ? String.format("%s (회원)", vm.liveCurrentUserName) : vm.liveCurrentUserName}'
                 android:textColor="@{vm.liveCurrentUserMember ? @color/red : @color/black}"
                 android:textSize="20sp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -213,7 +213,7 @@
                 android:layout_gravity="center"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="0 pt"
+                android:text="0 ￦"
                 android:textSize="30dp" />
 
             <Button
