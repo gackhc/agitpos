@@ -4,6 +4,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
 import ggack.agitpos.R
+import ggack.agitpos.domain.Membership
 import ggack.agitpos.data.model.StatisticsItemModel
 import ggack.agitpos.data.model.StatisticsModel
 import ggack.agitpos.data.model.StatisticsMonthModel
@@ -71,14 +72,7 @@ fun setDepositDateText(v : TextView, item : ItemModel) {
 @BindingAdapter("app:name", "app:member", "app:supervisor")
 fun setMemberText(v : TextView, name : String, member : String, supervisor : Boolean) {
 
-    val isMember = if(member.length == 6) {
-        val date = member + "31"
-        val format = DateTimeFormatter.ofPattern("yyyyMMdd")
-        LocalDate.now().isBefore(LocalDate.parse(date, format))
-    } else if (member.length == 14) {
-        val format = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-        LocalDateTime.now().isBefore(LocalDateTime.parse(member, format))
-    } else false
+    val isMember = Membership.expiry(member)?.isAfter(LocalDateTime.now()) == true
 
     if(isMember) {
         if(supervisor)

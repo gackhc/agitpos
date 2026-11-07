@@ -60,7 +60,7 @@ class DepositFragment : Fragment() {
             it?.let {
                 mapDeposit = it
                 adapter?.map = it
-                adapter?.keys = it.keys.toMutableList().sorted().toMutableList()
+                adapter?.keys = it.keys.sortedBy { key -> (it[key]?.get("date") as? Number)?.toLong() ?: 0L }.toMutableList()
                 adapter?.notifyDataSetChanged()
             }
         }

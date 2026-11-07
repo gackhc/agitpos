@@ -35,6 +35,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, application : Application) : BaseViewModel() {
     private val context = application.baseContext
+    val liveError: LiveData<String> = firebaseComm.liveError
+    fun clearError() { firebaseComm.liveError.value = null }
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveDeposits: LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveItems: LiveData<List<ItemModel>>

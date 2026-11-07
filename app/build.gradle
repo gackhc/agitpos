@@ -7,6 +7,10 @@ plugins {
     id 'dagger.hilt.android.plugin'
 }
 
+tasks.withType(Test).configureEach {
+    systemProperty 'agitpos.emulator', project.findProperty('firebaseEmulatorTests') ?: 'false'
+}
+
 def signingProperties = new Properties()
 def signingPropertiesFile = rootProject.file('signing.properties')
 if (signingPropertiesFile.exists()) {

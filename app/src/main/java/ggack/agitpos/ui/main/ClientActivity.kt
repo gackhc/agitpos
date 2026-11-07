@@ -46,6 +46,12 @@ class ClientActivity : BaseActivity() {
         viewModel.refreshUser()
     }
     fun initObserver() {
+        viewModel.liveError.observe(this) { message ->
+            if (!message.isNullOrBlank()) {
+                Utils.toast(this, message)
+                viewModel.clearError()
+            }
+        }
         viewModel.liveUserData.observe(this) {
             it?.let {
                 val name = intent.getStringExtra("name")?:""

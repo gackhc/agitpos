@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "$owner": {
+      ".read": true,
+      ".write": "$owner !== 'denied'"
+    }
+  }
+}
