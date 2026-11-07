@@ -2,8 +2,6 @@ package ggack.agitpos.domain
 
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import java.time.Instant
-import java.time.LocalDate
-import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -52,14 +50,11 @@ class Ledger(private val zone: ZoneId = ZoneId.systemDefault()) {
                     if (item.name.contains("운영진 출첵")) {
                         require(customer["isSupervisor"] == true) { "운영진만 출석 적립을 할 수 있습니다." }
                         val previous = (customer["svBonus"] as? Number)?.toLong() ?: 2022120100L
-                        val date = runCatching { LocalDate.parse((previous / 100).toString(), DateTimeFormatter.BASIC_ISO_DATE) }.getOrNull()
                         val today = now.toLocalDate()
-                        require(date == null || date.isBefore(today)) { "오늘 출석은 이미 처리되었습니다." }
-                        val count = if (date != null && YearMonth.from(date) == YearMonth.from(today)) (previous % 100).toInt() else 0
-                        require(count in 0..7) { "이번 달 출석 적립은 8회까지 가능합니다." }
+                        val count = requireNotNull(Attendance.nextCount(previous, today)) { "출석 적립은 하루 1회, 한 달 8회까지 가능합니다." }
                         balance = Math.addExact(balance, 6500)
-                        customer["svBonus"] = today.format(DateTimeFormatter.BASIC_ISO_DATE).toLong() * 100 + count + 1
-                        items["운영진 출첵 ${count + 1}|8"] = item.getMap()
+                        customer["svBonus"] = today.format(DateTimeFormatter.BASIC_ISO_DATE).toLong() * 100 + count
+                        items["운영진 출첵 $count|8"] = item.getMap()
                     } else {
                         total = Math.addExact(total, Math.multiplyExact(item.price, item.cnt))
                         items[item.name] = item.getMap()

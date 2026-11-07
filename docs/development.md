@@ -48,6 +48,13 @@ firebase emulators:exec --project demo-agitpos-review --only database --config t
 
 통합 테스트는 `127.0.0.1:9009`의 demo 데이터베이스에서 두 클라이언트의 동시 결제·입금, 중복 거래, 서버 권한 거절 및 잘못된 결제를 확인합니다. 테스트 Rules는 개방형이며 **운영에 배포하면 안 됩니다**. 일반 테스트 실행에서는 이 통합 테스트를 건너뜁니다.
 
+### 확인 결과 (2026-11-07)
+
+- 일반 회귀 테스트 26개 통과
+- 로컬 Firebase 통합 테스트 3개 통과 (일반 테스트 실행에서는 별도로 건너뜀)
+- 디버그 및 서명된 릴리스 APK 빌드 성공
+- Android Lint 오류 0건, 경고 178건 및 정보 2건. 경고까지 모두 정리한 상태는 아닙니다.
+
 실제 금융 앱의 알림 수신, 실기기 화면 및 운영 Firebase Rules 검증은 별도입니다.
 
 구현 참고: [Firebase 트랜잭션과 완료 콜백](https://firebase.google.com/docs/database/android/read-and-write#save_data_as_transactions), [Android NotificationListenerService](https://developer.android.com/reference/android/service/notification/NotificationListenerService).

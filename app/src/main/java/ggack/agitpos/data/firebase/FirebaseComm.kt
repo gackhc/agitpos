@@ -7,7 +7,6 @@ import com.google.firebase.database.*
 import ggack.agitpos.data.model.networkmodel.*
 import ggack.agitpos.domain.ItemCatalog
 import ggack.agitpos.domain.Ledger
-import ggack.agitpos.domain.LedgerAction
 import ggack.agitpos.domain.LedgerRequest
 import ggack.agitpos.utils.Utils
 import java.lang.Exception
@@ -112,14 +111,13 @@ class FirebaseComm @Inject constructor(){
                 override fun onComplete(error: DatabaseError?, committed: Boolean, data: DataSnapshot?) {
                     if (error != null) liveError.value = "사용자 저장에 실패했습니다."
                     else if (!committed) liveError.value = "이미 등록된 이름입니다."
-                    getUsers()
+                    if (error == null) getUsers()
                 }
             }, false)
         }
     }
     fun removeUser(name : String) {
         mID?.let { it ->
-            val map : Map<String, Any?> = UserModel("0000", 0).getMap()
             mDatabase.child(it).child("users").child(name.lowercase()).removeValue().addOnSuccessListener {
                 Log.e(TAG, "add success $name")
                 getUsers()
@@ -132,14 +130,12 @@ class FirebaseComm @Inject constructor(){
         setHistoryListener()
         mID?.let { it ->
             mDatabase.child(it).child("users").get().addOnSuccessListener { data ->
-                val value = data.value as Map<String, Map<String, Any>>?
-                if(value == null) {
+                if (mID != it) return@addOnSuccessListener
+                val value = data.value as? Map<String, Map<String, Any>> ?: run {
                     addUser("*MASTER")
-                } else {
-                    liveUserList.postValue(value!!)
+                    return@addOnSuccessListener
                 }
-            }.addOnSuccessListener {
-
+                liveUserList.postValue(value)
             }.addOnFailureListener {
                 Log.e(TAG, "Error getUsers", it)
             }
@@ -148,6 +144,7 @@ class FirebaseComm @Inject constructor(){
     fun getDeposits() {
         mID?.let { it ->
             mDatabase.child(it).child("deposits").get().addOnSuccessListener { data ->
+                if (mID != it) return@addOnSuccessListener
                 val value = data.value as Map<String, Map<String, Any>>? ?: run {
                     liveDeposits.postValue(mapOf())
                     return@addOnSuccessListener
@@ -161,6 +158,7 @@ class FirebaseComm @Inject constructor(){
     fun getItems() {
         mID?.let { it ->
             mDatabase.child(it).child("items").get().addOnSuccessListener { data ->
+                if (mID != it) return@addOnSuccessListener
                 runCatching { ItemCatalog.decode(data.value) }
                     .onSuccess { liveItemList.postValue(it) }
                     .onFailure { liveError.postValue("상품 데이터를 읽지 못했습니다.") }
@@ -294,36 +292,22 @@ class FirebaseComm @Inject constructor(){
                 }
             }.addOnFailureListener { liveError.postValue("이전 거래 내역을 읽지 못했습니다.") }
     }
-    fun setAccount(context : Context, account : String, name : String, kakaoPay : String) {
-        mID?.let {
-            try {
-                mDatabase.child(it).child("account").setValue(AccountModel(account, name, kakaoPay).getMap())
-                liveAccount.postValue(AccountModel(account, name))
-                getAccount(context)
-            } catch (e : Exception) {
-
-            }
-        }
+    fun setAccount(context: Context, account: String, name: String, kakaoPay: String) {
+        val owner = mID ?: return
+        mDatabase.child(owner).child("account").setValue(AccountModel(account, name, kakaoPay).getMap())
+            .addOnSuccessListener { if (mID == owner) getAccount(context) }
+            .addOnFailureListener { liveError.postValue("계좌 정보를 저장하지 못했습니다.") }
     }
-    fun getAccount(context : Context) {
-        mID?.let { it ->
-            try {
-                mDatabase.child(it).child("account").get().addOnSuccessListener {data ->
-                    data.value?.let {v ->
-                        val model = FromMap.toAccountModel(v as Map<String, Any>)
-                        if (!model.account.isNullOrEmpty())
-                            Utils.setPref(
-                                context,
-                                "bankAccount",
-                                model.account!!.substring(model.account!!.lastIndex - 3)
-                            )
-                        liveAccount.postValue(model)
-                    }
-                }
-            } catch (e : Exception) {
-
-            }
-        }
+    fun getAccount(context: Context) {
+        val owner = mID ?: return
+        mDatabase.child(owner).child("account").get().addOnSuccessListener { data ->
+            if (mID != owner) return@addOnSuccessListener
+            runCatching { FromMap.toAccountModel(Ledger.record(data.value)) }
+                .onSuccess { model ->
+                    Utils.setPref(context, "bankAccount", model.account.takeIf { it.length >= 4 }?.takeLast(4) ?: "")
+                    liveAccount.postValue(model)
+                }.onFailure { liveError.postValue("계좌 정보의 형식을 확인해 주세요.") }
+        }.addOnFailureListener { liveError.postValue("계좌 정보를 읽지 못했습니다.") }
     }
 
     private var historyReference: DatabaseReference? = null

@@ -21,8 +21,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
+import ggack.agitpos.domain.Attendance
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.data.model.networkmodel.UserModel
 import ggack.agitpos.databinding.FragmentMainClientBinding
@@ -192,28 +192,8 @@ class MainClientFragment : Fragment() {
                 }
                 binding?.rvItems?.adapter?.notifyDataSetChanged()
                 if(viewModel.liveCurrentUserSupervisor.value == true) {
-                    var bonus = viewModel.liveCurrentUserBonus.value?:2022120100L
-                    var cnt = bonus % 100L
-                    val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
-                    val date = LocalDate.parse(Math.floorDiv(bonus, 100).toString(), dtf)
-                    val today = LocalDate.now()
-
-                    //같은날이면 x
-                    if(date.isBefore(today)) {
-                        //새로운달이면 처음부터
-                        //8번 이상이면 x
-                        if (date.monthValue != today.monthValue)
-                            cnt = 0L
-                    }
-                    cnt++
-
-                    mListItems.add(
-                        ItemModel(
-                            "운영진 출첵 $cnt/8",
-                            0,
-                            1
-                        )
-                    )
+                    val count = Attendance.nextCount(viewModel.liveCurrentUserBonus.value ?: 2022120100L, LocalDate.now())
+                    if (count != null) mListItems.add(ItemModel("운영진 출첵 $count/8", 0, 1))
                 }
                 binding?.rvItems?.adapter?.notifyDataSetChanged()
             }

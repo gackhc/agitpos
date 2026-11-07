@@ -19,6 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.firebase.DepositInbox
+import ggack.agitpos.data.model.networkmodel.AccountModel
 import ggack.agitpos.domain.DepositNotification
 import ggack.agitpos.ui.login.LoginActivity
 import ggack.agitpos.utils.Utils
@@ -41,11 +42,15 @@ class NotiListenerService : NotificationListenerService() {
             drainInbox()
         }
     }
+    private val accountObserver = Observer<AccountModel?> {
+        if (connected) activeNotifications?.forEach { notification -> capture(notification) }
+    }
 
     override fun onCreate() {
         super.onCreate()
         inbox = DepositInbox(this)
         firebaseComm.liveOwner.observeForever(ownerObserver)
+        firebaseComm.liveAccount.observeForever(accountObserver)
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startNotiService()
@@ -109,6 +114,7 @@ class NotiListenerService : NotificationListenerService() {
         destroyed = true
         handler.removeCallbacksAndMessages(null)
         firebaseComm.liveOwner.removeObserver(ownerObserver)
+        firebaseComm.liveAccount.removeObserver(accountObserver)
         super.onDestroy()
     }
 

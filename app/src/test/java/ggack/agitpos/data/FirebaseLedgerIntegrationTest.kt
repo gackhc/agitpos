@@ -1,6 +1,8 @@
 package ggack.agitpos.data
 
 import android.app.Application
+import android.content.pm.ServiceInfo
+import android.os.Bundle
 import androidx.test.core.app.ApplicationProvider
 import com.google.android.gms.tasks.Task
 import com.google.firebase.FirebaseApp
@@ -31,7 +33,21 @@ class FirebaseLedgerIntegrationTest {
     private val apps = mutableListOf<FirebaseApp>()
     private val databases = mutableListOf<FirebaseDatabase>()
     private val context get() = ApplicationProvider.getApplicationContext<Application>()
-    @Before fun requireEmulator() { assumeTrue(java.lang.Boolean.getBoolean("agitpos.emulator")) }
+    @Before fun requireEmulator() {
+        assumeTrue(java.lang.Boolean.getBoolean("agitpos.emulator"))
+        // Register only Database. Do not load the production manifest's analytics,
+        // auth or crash-reporting providers into the test application.
+        val service = ServiceInfo().apply {
+            name = "com.google.firebase.components.ComponentDiscoveryService"
+            packageName = context.packageName
+            applicationInfo = context.applicationInfo
+            metaData = Bundle().apply {
+                putString("com.google.firebase.components:com.google.firebase.database.DatabaseRegistrar",
+                    "com.google.firebase.components.ComponentRegistrar")
+            }
+        }
+        shadowOf(context.packageManager).addOrUpdateService(service)
+    }
     @After fun cleanup() {
         databases.forEach { it.goOffline() }
         apps.forEach { it.delete() }
