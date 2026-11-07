@@ -18,6 +18,9 @@ import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.databinding.FragmentListBinding
 import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.DepositAdapter
+import ggack.agitpos.domain.LedgerAction
+import ggack.agitpos.domain.LedgerRequest
+import java.util.UUID
 import ggack.agitpos.utils.Constants
 import ggack.agitpos.ui.dialog.SimpleDialog
 import ggack.agitpos.ui.dialog.SimpleListDialog
@@ -35,7 +38,7 @@ class DepositFragment : Fragment() {
     private val viewModel by activityViewModels<MainViewModel>()
     private var mapDeposit = mapOf<String, Map<String, Any>>()
     private var mMapName : Map<String, Map<String, Any>> = HashMap()
-    private var mUserPrepared = false
+    private var saving = false
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         binding = FragmentListBinding.inflate(inflater, container, false)
         return binding?.root
@@ -64,7 +67,6 @@ class DepositFragment : Fragment() {
         viewModel.liveUserData.observe(viewLifecycleOwner) {
             it?.let {
                 mMapName = it
-                mUserPrepared = true
             }
         }
     }
@@ -77,7 +79,6 @@ class DepositFragment : Fragment() {
                 val model = item as DepositModel
                 val dlg = SimpleListDialog(requireContext(), mMapName.keys.toList().sorted()) { name ->
                     addAll(model.name, name)
-                    setExtraName(name, model.name)
                 }
                 dlg.setBtnTxt("취소")
                 dlg.show()
@@ -89,7 +90,6 @@ class DepositFragment : Fragment() {
                 val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
                     when (it) {
                         Activity.RESULT_OK -> {
-                            mUserPrepared = false
                             if(model.name.isNotEmpty()) {
                                 if (mMapName.isDuplicated(key, model.name))
                                     Toast.makeText(
@@ -113,8 +113,7 @@ class DepositFragment : Fragment() {
                 val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
                     when (it) {
                         Activity.RESULT_OK -> {
-                            mUserPrepared = false
-                            firebaseComm.removeDepositItem(model.date.toString())
+                            firebaseComm.removeDepositItem(key)
                         }
                     }
                 }
@@ -124,28 +123,17 @@ class DepositFragment : Fragment() {
         })
         binding?.recyclerView?.adapter = adapter
     }
-    fun addAll(originName : String, name : String) {
-        CoroutineScope(Dispatchers.Main).launch {
-            val keys = mutableListOf<String>()
-            keys.addAll(adapter?.keys?: listOf())
-            keys.forEach {date ->
-                while(!mUserPrepared) {
-                    delay(10)
-                }
-                if(mapDeposit.containsKey(date)) {
-                    mUserPrepared = false
-                    mapDeposit[date]?.let { map ->
-                        val m = FromMap.toDepositModel(map)
-                        if (m.name == originName) {
-                            activity?.runOnUiThread {
-                                setData(date, name, m)
-                            }
-                        } else {
-                            mUserPrepared = true
-                        }
-                    }
-                }
-            }
+    fun addAll(originName: String, name: String) {
+        if (saving) return
+        val keys = mapDeposit.filterValues { it["name"] == originName }.keys.toList()
+        if (keys.isEmpty()) return
+        saving = true
+        firebaseComm.submit(LedgerRequest(UUID.randomUUID().toString(), System.currentTimeMillis(),
+            LedgerAction.AssignDeposits(name, keys))) { result ->
+            saving = false
+            if (binding == null) return@submit
+            if (result.isSuccess) setExtraName(name, originName)
+            else context?.let { Toast.makeText(it, result.exceptionOrNull()?.message ?: "입금 반영에 실패했습니다.", Toast.LENGTH_LONG).show() }
         }
     }
     fun setExtraName(key : String, name : String) {
@@ -165,24 +153,4 @@ class DepositFragment : Fragment() {
         dlg.show()
     }
 
-    fun setData(key : String, name : String, model : DepositModel) {
-        val user = FromMap.toUserModel(mMapName[name]!!)
-        firebaseComm.setMoney(name, model.money + user.money)
-        firebaseComm.addHistory(
-            HistoryModel(
-            model.date,
-            name,
-            Constants.HISTORY_DEPOSIT,
-            model.money,
-            mapOf(),
-            model.name
-        )
-        )
-        firebaseComm.removeDepositItem(key)
-        val pos = adapter?.keys?.indexOf(key)
-        pos?.let{
-            adapter?.keys?.removeAt(pos)
-            adapter?.notifyItemRemoved(pos)
-        }
-    }
 }

@@ -85,3 +85,9 @@ lint/tmp/
 # lint/reports/
 .idea/
 app/release/
+
+# Private signing material (never commit)
+signing/
+signing.properties
+*.jks
+*.keystore

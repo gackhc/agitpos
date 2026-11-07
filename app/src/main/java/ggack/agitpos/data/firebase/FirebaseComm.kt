@@ -5,6 +5,10 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.database.*
 import ggack.agitpos.data.model.networkmodel.*
+import ggack.agitpos.domain.ItemCatalog
+import ggack.agitpos.domain.Ledger
+import ggack.agitpos.domain.LedgerAction
+import ggack.agitpos.domain.LedgerRequest
 import ggack.agitpos.utils.Utils
 import java.lang.Exception
 import java.time.LocalDate
@@ -18,7 +22,10 @@ class FirebaseComm @Inject constructor(){
     private lateinit var mDatabase : DatabaseReference
     private var mID : String? = null
     private lateinit var mValidate : LocalDate
-    val liveItemList = MutableLiveData<List<Map<String, Any>>>(listOf())
+    val liveItemList = MutableLiveData<List<ItemModel>>(listOf())
+    val liveOwner = MutableLiveData<String?>(null)
+    val liveError = MutableLiveData<String>()
+    private val ledger = Ledger()
     val liveUserList = MutableLiveData<Map<String, Map<String, Any>>>(mapOf())
     val liveDeposits = MutableLiveData<Map<String, Map<String, Any>>>(mapOf())
     val liveHistory = MutableLiveData<MutableMap<String, HistoryModel>>(mutableMapOf())
@@ -28,12 +35,27 @@ class FirebaseComm @Inject constructor(){
     val liveHistoryByName = MutableLiveData<MutableMap<String, MutableList<HistoryModel>>>(
         mutableMapOf()
     )
-    fun init() {
-        mDatabase = FirebaseDatabase.getInstance().reference
+    fun init(database: FirebaseDatabase = FirebaseDatabase.getInstance()) {
+        mDatabase = database.reference
     }
 
     fun setID(context: Context, id : String) {
+        if (mID != id) {
+            historyReference?.removeEventListener(historyListener)
+            historyReference = null
+            historyMonths.clear()
+            liveHistory.value = mutableMapOf()
+            liveHistoryByName.value = mutableMapOf()
+            liveUserList.value = emptyMap()
+            liveItemList.value = emptyList()
+            liveDeposits.value = emptyMap()
+            liveAccount.value = null
+            searchHistoryMonth = LocalDate.now()
+            if (Utils.getPref(context, "databaseOwner") != id) Utils.setPref(context, "bankAccount", "")
+            Utils.setPref(context, "databaseOwner", id)
+        }
         mID = id
+        liveOwner.value = id
         setHistoryListener()
         checkValidate(id)
         setVersion(context)
@@ -43,14 +65,16 @@ class FirebaseComm @Inject constructor(){
     fun checkValidate(id : String? = mID) {
         id?.let {
             mDatabase.child(id).get().addOnSuccessListener { data ->
-                val map = data.value as MutableMap<String, Any>
-                val validate = map["validate"] as String?
+                val validate = data.child("validate").value as? String
                 val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
                 if (validate.isNullOrBlank()) {
                     mValidate = LocalDate.now()
                     mDatabase.child(it).child("validate").setValue(mValidate.format(dtf))
                 } else {
-                    mValidate = LocalDate.parse(validate, dtf)
+                    mValidate = runCatching { LocalDate.parse(validate, dtf) }.getOrElse {
+                        liveValidate.postValue(false)
+                        return@addOnSuccessListener
+                    }
                     if (LocalDate.now().isAfter(mValidate)) {
                         liveValidate.postValue(false)
                         return@addOnSuccessListener
@@ -73,14 +97,24 @@ class FirebaseComm @Inject constructor(){
         }
     }
     fun addUser(name : String) {
+        val normalized = name.trim().lowercase()
+        if (!Ledger.validKey(normalized)) {
+            liveError.value = "이름에는 . # $ [ ] / 문자를 사용할 수 없습니다."
+            return
+        }
         mID?.let { it ->
-            val map : Map<String, Any?> = UserModel("0000", 0).getMap()
-            mDatabase.child(it).child("users").child(name.lowercase()).setValue(map).addOnSuccessListener {
-                Log.e(TAG, "add success $name")
-                getUsers()
-            }.addOnFailureListener {
-                Log.e(TAG, "Error getting data", it)
-            }
+            mDatabase.child(it).child("users").child(normalized).runTransaction(object : Transaction.Handler {
+                override fun doTransaction(data: MutableData): Transaction.Result {
+                    if (data.value != null) return Transaction.abort()
+                    data.value = UserModel("0000", 0).getMap()
+                    return Transaction.success(data)
+                }
+                override fun onComplete(error: DatabaseError?, committed: Boolean, data: DataSnapshot?) {
+                    if (error != null) liveError.value = "사용자 저장에 실패했습니다."
+                    else if (!committed) liveError.value = "이미 등록된 이름입니다."
+                    getUsers()
+                }
+            }, false)
         }
     }
     fun removeUser(name : String) {
@@ -95,6 +129,7 @@ class FirebaseComm @Inject constructor(){
         }
     }
     fun getUsers() {
+        setHistoryListener()
         mID?.let { it ->
             mDatabase.child(it).child("users").get().addOnSuccessListener { data ->
                 val value = data.value as Map<String, Map<String, Any>>?
@@ -103,7 +138,6 @@ class FirebaseComm @Inject constructor(){
                 } else {
                     liveUserList.postValue(value!!)
                 }
-                Log.e(TAG, value.toString())
             }.addOnSuccessListener {
 
             }.addOnFailureListener {
@@ -119,7 +153,6 @@ class FirebaseComm @Inject constructor(){
                     return@addOnSuccessListener
                 }
                 liveDeposits.postValue(value)
-                Log.e(TAG, value.toString())
             }.addOnFailureListener {
                 Log.e(TAG, "Error getDeposits", it)
             }
@@ -128,16 +161,9 @@ class FirebaseComm @Inject constructor(){
     fun getItems() {
         mID?.let { it ->
             mDatabase.child(it).child("items").get().addOnSuccessListener { data ->
-                val value = data.value
-                if (value is HashMap<*, *>) {
-                    liveItemList.postValue(value.toList() as List<Map<String, Any>>)
-                }
-                else if (value is ArrayList<*>) {
-                    liveItemList.postValue(value.toList() as List<Map<String, Any>>)
-                } else {
-                    liveItemList.postValue(listOf())
-                }
-                Log.e(TAG, value.toString())
+                runCatching { ItemCatalog.decode(data.value) }
+                    .onSuccess { liveItemList.postValue(it) }
+                    .onFailure { liveError.postValue("상품 데이터를 읽지 못했습니다.") }
             }.addOnFailureListener {
                 Log.e(TAG, "Error getDeposits", it)
             }
@@ -180,15 +206,6 @@ class FirebaseComm @Inject constructor(){
             }
         }
     }
-    fun addDepositItem(model : DepositModel) {
-        mID?.let { it ->
-            mDatabase.child(it).child("deposits").child(model.date.toString()).setValue(model.getMap()).addOnSuccessListener {
-                getDeposits()
-            }.addOnFailureListener {
-                Log.e(TAG, "Error removeDepositItem", it)
-            }
-        }
-    }
     fun changePin(name : String, pin : String) {
         mID?.let { it ->
             mDatabase.child(it).child("users").child(name.lowercase()).child("pin").setValue(pin)
@@ -199,15 +216,41 @@ class FirebaseComm @Inject constructor(){
             }
         }
     }
-    fun setMoney(name : String, money : Int) {
-        mID?.let { it ->
-            mDatabase.child(it).child("users").child(name.lowercase()).child("money").setValue(money)
-                .addOnSuccessListener {
-                    getUsers()
-                }.addOnFailureListener {
-                    Log.e(TAG, "Error changePin", it)
-                }
+    fun submit(request: LedgerRequest, callback: (Result<Unit>) -> Unit) {
+        val owner = mID
+        if (owner == null || !::mDatabase.isInitialized) {
+            callback(Result.failure(IllegalStateException("로그인 후 다시 시도해 주세요.")))
+            return
         }
+        var rejection: Exception? = null
+        mDatabase.child(owner).runTransaction(object : Transaction.Handler {
+            override fun doTransaction(data: MutableData): Transaction.Result {
+                rejection = null
+                try {
+                    // A cold cache can be empty even when the server has data. A no-op
+                    // success lets Firebase retry against the authoritative snapshot.
+                    if (data.value != null) data.value = ledger.apply(Ledger.record(data.value), request)
+                } catch (error: Exception) {
+                    rejection = error
+                }
+                return Transaction.success(data)
+            }
+            override fun onComplete(error: DatabaseError?, committed: Boolean, data: DataSnapshot?) {
+                val applied = data?.child("processedOperations")?.hasChild(request.id) == true
+                if (error == null && committed && applied) {
+                    if (mID == owner) {
+                        getUsers()
+                        getDeposits()
+                        // A manually assigned deposit can belong to an older month.
+                        data?.child("history")?.children?.forEach { mergeHistory(it) }
+                    }
+                    callback(Result.success(Unit))
+                } else {
+                    callback(Result.failure(error?.toException() ?: rejection
+                        ?: IllegalStateException("거래를 저장하지 못했습니다. 로그인과 연결 상태를 확인해 주세요.")))
+                }
+            }
+        }, false)
     }
     fun setExtraName(name : String, extraName : String) {
         mID?.let { it ->
@@ -239,46 +282,17 @@ class FirebaseComm @Inject constructor(){
                 }
         }
     }
-    fun setSvBonus(name : String, bonus : Long) {
-        mID?.let { id ->
-            mDatabase.child(id).child("users").child(name.lowercase()).child("svBonus").setValue(bonus)
-                .addOnSuccessListener {
-                }.addOnFailureListener {
-                    Log.e(TAG, "Error changePin", it)
-                }
-        }
-    }
-    fun addHistory(historyModel : HistoryModel) {
-        val month = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("yyyyMM"))
-        val datetime = Utils.getDate(historyModel.date).format(DateTimeFormatter.ofPattern("ddHHmmssSSS"))
-        mID?.let { it ->
-            mDatabase.child(it).child("history").child(month).child(datetime).setValue(historyModel.getMap())
-        }
-    }
-
     private var searchHistoryMonth: LocalDate = LocalDate.now()
-    fun getPrevHistory() { // DateTimeFormatter.ofPattern("yyyyMM")
-        mID?.let { it ->
-            searchHistoryMonth = searchHistoryMonth.minusMonths(1)
-            mDatabase.child(it).child("history").child(searchHistoryMonth.format(DateTimeFormatter.ofPattern("yyyyMM"))).get().addOnSuccessListener { snapshot ->
-                val children = snapshot.children.sortedBy { it.key }
-                val map : MutableMap<String, HistoryModel> = liveHistory.value?: hashMapOf()
-                val mapName : MutableMap<String, MutableList<HistoryModel>> = liveHistoryByName.value?: hashMapOf()
-                children.forEach {
-                    it.key?.let {key ->
-                        FromMap.toHistoryModel(it.value as Map<String, Any?>).let { model ->
-                            map[key] = model
-                            if (mapName[model.nickname] == null)
-                                mapName[model.nickname] = mutableListOf()
-                            if(mapName[model.nickname]?.contains(model.date) == false)
-                                mapName[model.nickname]?.add(model)
-                        }
-                    }
+    fun getPrevHistory() {
+        val owner = mID ?: return
+        val month = searchHistoryMonth.minusMonths(1)
+        mDatabase.child(owner).child("history").child(month.format(DateTimeFormatter.ofPattern("yyyyMM")))
+            .get().addOnSuccessListener {
+                if (mID == owner) {
+                    searchHistoryMonth = month
+                    mergeHistory(it)
                 }
-                liveHistoryByName.postValue(mapName)
-                liveHistory.postValue(map)
-            }
-        }
+            }.addOnFailureListener { liveError.postValue("이전 거래 내역을 읽지 못했습니다.") }
     }
     fun setAccount(context : Context, account : String, name : String, kakaoPay : String) {
         mID?.let {
@@ -312,45 +326,36 @@ class FirebaseComm @Inject constructor(){
         }
     }
 
+    private var historyReference: DatabaseReference? = null
+    private val historyMonths = mutableMapOf<String, Map<String, HistoryModel>>()
+    private fun mergeHistory(snapshot: DataSnapshot) {
+        val month = snapshot.key ?: return
+        val entries = linkedMapOf<String, HistoryModel>()
+        snapshot.children.forEach { child ->
+            runCatching { FromMap.toHistoryModel(Ledger.record(child.value)) }
+                .onSuccess { entries["$month/${child.key}"] = it }
+                .onFailure { liveError.postValue("일부 거래 내역의 형식을 확인해 주세요.") }
+        }
+        historyMonths[month] = entries
+        val all = historyMonths.values.flatMap { it.entries }.associate { it.key to it.value }
+        liveHistory.postValue(all.toMutableMap())
+        liveHistoryByName.postValue(all.values.groupBy { it.nickname }
+            .mapValues { it.value.sortedBy { model -> model.date }.toMutableList() }.toMutableMap())
+    }
     private val historyListener = object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            val children = snapshot.children.sortedBy { it.key }
-            val map : MutableMap<String, HistoryModel> = liveHistory.value?: hashMapOf()
-            val mapName : MutableMap<String, MutableList<HistoryModel>> = liveHistoryByName.value?: hashMapOf()
-            children.forEach {
-                it.key?.let {key ->
-                    FromMap.toHistoryModel(it.value as Map<String, Any?>).let { model ->
-                        map[key] = model
-                        if (mapName[model.nickname] == null)
-                            mapName[model.nickname] = mutableListOf()
-                        if(mapName[model.nickname]?.contains(model.date) == false)
-                            mapName[model.nickname]?.add(model)
-                    }
-                }
-            }
-            liveHistoryByName.postValue(mapName)
-            liveHistory.postValue(map)
-        }
+        override fun onDataChange(snapshot: DataSnapshot) = mergeHistory(snapshot)
         override fun onCancelled(error: DatabaseError) {
+            liveError.postValue("거래 내역을 읽지 못했습니다.")
         }
     }
-    private var prevListenerMonth = ""
     private fun setHistoryListener() {
-        mID?.let { it ->
-            val now = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"))
-            if(now != prevListenerMonth) {
-                prevListenerMonth = now
-                mDatabase.child(it).child("history")
-                    .child(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
-                    .addValueEventListener(historyListener)
-            }
+        val owner = mID ?: return
+        val ref = mDatabase.child(owner).child("history")
+            .child(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
+        if (historyReference?.toString() != ref.toString()) {
+            historyReference?.removeEventListener(historyListener)
+            historyReference = ref
+            ref.addValueEventListener(historyListener)
         }
-    }
-    private fun MutableList<HistoryModel>.contains(key : Long) : Boolean {
-        for(model in this) {
-            if(model.date == key)
-                return true
-        }
-        return false
     }
 }

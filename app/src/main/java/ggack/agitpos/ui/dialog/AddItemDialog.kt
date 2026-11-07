@@ -43,8 +43,17 @@ class AddItemDialog(val context: Context, val resultCallback : ResultCallback?) 
     val onClickListener = View.OnClickListener{
         when(it){
             binding.btnConfirm->{
-                resultCallback?.onResult(binding.editTextName.text.toString(),
-                    binding.editTextPrice.text.toString().toInt())
+                val name = binding.editTextName.text.toString().trim()
+                val price = binding.editTextPrice.text.toString().toIntOrNull()
+                if (!ggack.agitpos.domain.Ledger.validKey(name)) {
+                    binding.editTextName.error = "이름을 확인해 주세요 (. # $ [ ] / 제외)"
+                    return@OnClickListener
+                }
+                if (price == null) {
+                    binding.editTextPrice.error = "올바른 금액을 입력해 주세요"
+                    return@OnClickListener
+                }
+                resultCallback?.onResult(name, price)
                 dismiss()
             }
             binding.btnDelete->{

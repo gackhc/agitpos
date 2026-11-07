@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
+import ggack.agitpos.domain.ItemCatalog
 import ggack.agitpos.data.model.networkmodel.ItemModel
 import ggack.agitpos.databinding.FragmentItemsBinding
 import ggack.agitpos.listener.ListListener
@@ -84,42 +85,13 @@ class ItemListFragment : Fragment() {
             ): Boolean {
                 val from = viewHolder.adapterPosition
                 val to = target.adapterPosition
-                if (from == mListItems.lastIndex)
-                    return false
+                if (!ItemCatalog.move(mListItems, from, to)) return false
                 adapter?.notifyItemMoved(from, to)
                 return true
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                TODO("Not yet implemented")
-            }
-
-            override fun onMoved(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                from: Int,
-                target: RecyclerView.ViewHolder,
-                to: Int,
-                x: Int,
-                y: Int
-            ) {
-                if(from > to) {
-                    var startIdx = if (to == 0) 1 else mListItems[to - 1].idx + 1
-                    mListItems[from].idx = startIdx++
-                    for (i in to until from) {
-                        mListItems[i].idx = startIdx++
-                    }
-                } else {
-                    var startIdx = if (to == 0) 1 else mListItems[from - 1].idx + 1
-                    for (i in from + 1 .. to) {
-                        mListItems[i].idx = startIdx++
-                    }
-                    mListItems[from].idx = startIdx++
-
-                }
-                Log.e("move", mListItems.toString())
-                mListItems.sortBy { it.idx }
-                super.onMoved(recyclerView, viewHolder, from, target, to, x, y)
+                // Swipe gestures are disabled.
             }
 
             override fun clearView(

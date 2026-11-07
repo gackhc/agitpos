@@ -23,6 +23,10 @@ import ggack.agitpos.listener.ListListener
 import ggack.agitpos.ui.adapter.UserAdapter
 import ggack.agitpos.ui.dialog.SimpleEditDialog
 import ggack.agitpos.ui.dialog.SimpleListDialog
+import ggack.agitpos.domain.Membership
+import ggack.agitpos.domain.LedgerRequest
+import ggack.agitpos.domain.LedgerAction
+import java.util.UUID
 import ggack.agitpos.utils.Utils
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -136,24 +140,9 @@ class UserListFragment : Fragment() {
                 item as UserModel
                 currentSelected = key
 
-                val timeLimit = LocalDateTime.now().plusMonths(1).withDayOfMonth(1).plusMinutes(1).withHour(8).withMinute(0)
-                if(item.member?.length == 6) {
-                    val date = item.member + "31"
-                    val format = DateTimeFormatter.ofPattern("yyyyMMdd")
-                    firebaseComm.setMembership(key,
-                        if(LocalDate.now().isBefore(LocalDate.parse(date, format)))
-                            "" else
-                            timeLimit.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
-                } else if (item.member?.length == 14) {
-                    val format = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-                    firebaseComm.setMembership(key,
-                        if(LocalDateTime.now().isBefore(LocalDateTime.parse(item.member, format)))
-                            "" else
-                            timeLimit.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")))
-                } else {
-                    firebaseComm.setMembership(key,
-                            timeLimit.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")))
-                }
+                val now = LocalDateTime.now()
+                val active = Membership.expiry(item.member)?.isAfter(now) == true
+                firebaseComm.setMembership(key, if (active) "" else Membership.encode(Membership.monthly(now)))
 
             }
 
@@ -197,8 +186,13 @@ class UserListFragment : Fragment() {
         ) { _, _ ->
             try {
                 val v = editText.text.toString().toInt()
-                firebaseComm.setMoney(name, v)
-                Toast.makeText(context, "입력 성공", Toast.LENGTH_SHORT).show()
+                firebaseComm.submit(LedgerRequest(UUID.randomUUID().toString(), System.currentTimeMillis(),
+                    LedgerAction.SetBalance(name, money, v))) { result ->
+                    if (binding != null) Toast.makeText(context, result.fold(
+                        onSuccess = { "입력 성공" }, onFailure = { it.message ?: "입력 실패" }
+                    ), Toast.LENGTH_LONG).show()
+                    viewModel.refreshUser()
+                }
             } catch (e: Exception) {
                 Toast.makeText(context, "입력 실패", Toast.LENGTH_SHORT).show()
             }

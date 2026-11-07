@@ -16,6 +16,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
 import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.R
+import ggack.agitpos.data.login.UserSession
+import javax.inject.Inject
 import ggack.agitpos.data.model.networkmodel.FromMap
 import ggack.agitpos.databinding.ActivityMainBinding
 import ggack.agitpos.ui.base.BaseActivity
@@ -31,10 +33,17 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
+    @Inject lateinit var session: UserSession
     private val viewModel by viewModels<MainViewModel>()
     private lateinit var binding : ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val name = intent.getStringExtra("name").orEmpty()
+        if (!session.permits(name, master = true)) {
+            startActivity(Intent(this, LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+            finish()
+            return
+        }
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this
 

@@ -1,158 +1,119 @@
- package ggack.agitpos.service
+package ggack.agitpos.service
 
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.R
 import ggack.agitpos.data.firebase.FirebaseComm
-import ggack.agitpos.data.model.networkmodel.DepositModel
-import ggack.agitpos.data.model.networkmodel.FromMap
-import ggack.agitpos.data.model.networkmodel.HistoryModel
+import ggack.agitpos.data.firebase.DepositInbox
+import ggack.agitpos.domain.DepositNotification
 import ggack.agitpos.ui.login.LoginActivity
-import ggack.agitpos.utils.Constants
 import ggack.agitpos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.time.Instant
-import java.util.*
+import java.util.Calendar
 import javax.inject.Inject
 
- @AndroidEntryPoint
- class NotiListenerService: NotificationListenerService() {
+@AndroidEntryPoint
+class NotiListenerService : NotificationListenerService() {
     @Inject lateinit var firebaseComm: FirebaseComm
-     private var observerUser : Observer<Any?>? = null
-     private var mUserPrepared = false
-     private var mUserList : Map<String, Map<String, Any>>? = null
+    private lateinit var inbox: DepositInbox
+    private val handler = Handler(Looper.getMainLooper())
+    private var saving = false
+    private var destroyed = false
+    private var connected = false
+    private var statusText = "입금 확인 중"
+    private val retry = Runnable { drainInbox() }
+    private val ownerObserver = Observer<String?> { owner ->
+        if (owner != null) {
+            if (connected) activeNotifications?.forEach { capture(it) }
+            drainInbox()
+        }
+    }
 
-     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-         return START_STICKY
-     }
-
-     override fun onListenerConnected() {
-         super.onListenerConnected()
-         Log.e("onListenerConnected", "connected")
-         startNotiService()
-
-         observerUser = Observer {
-             mUserList = it as Map<String, Map<String, Any>>?
-             mUserPrepared = true
-         }
-         observerUser?.let {
-             firebaseComm.liveUserList.observeForever(it)
-         }
-     }
-
-     override fun onListenerDisconnected() {
-         super.onListenerDisconnected()
-         Log.e("onListenerDisconnected", "disconnected")
-         observerUser?.let { firebaseComm.liveUserList.removeObserver(it) }
-     }
-     override fun onNotificationPosted(sbn: StatusBarNotification?) {
-         super.onNotificationPosted(sbn)
-         Log.e("onNotificationPosted", "${sbn?.packageName} : ${sbn?.notification?.extras}")
-         if(sbn?.packageName?.contains("kakaopay") == true) {
-             val body = sbn?.notification?.extras?.getString("android.text")
-             if (body?.contains("보냈어요") == true) {
-                 try {
-                     val strArray = body.split("\n")
-                     val nickName = strArray[1]
-                     val money = strArray[0].replace("  ", " ").replace(",", "").split(" ").get(1).replace("원을", "").toInt()
-                     val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
-                     mUserPrepared = false
-                     firebaseComm.getUsers()
-                     CoroutineScope(Dispatchers.Main).launch {
-                         while (!mUserPrepared) {
-                             delay(10)
-                         }
-                         val name = mUserList?.containsName(model.name)
-                         if (name != null) {
-                             val user = FromMap.toUserModel(mUserList!![name]!!)
-                             val money = user.money + model.money
-                             firebaseComm.setMoney(name, money)
-
-                             val historyModel = HistoryModel(
-                                 System.currentTimeMillis(),
-                                 name,
-                                 Constants.HISTORY_DEPOSIT,
-                                 model.money,
-                                 mapOf(),
-                                 "카카오페이"
-                             )
-                             firebaseComm.addHistory(historyModel)
-                         } else {
-                             firebaseComm.addDepositItem(model)
-                         }
-                     }
-                 } catch (e : Exception) {
-                     Log.e("error", body)
-                 }
-             }
-         }
-         else if(sbn?.packageName == "com.samsung.android.messaging") {
-             val body = sbn?.notification?.extras?.getString("android.text")?:""
-             val bankAccount = Utils.getPref(this, "bankAccount")
-             if (body.contains("[카카오뱅크]") && body.contains("입금") && body.contains("($bankAccount)")) {
-                 val strArray = body.split("\n")
-
-                 var nickName : String? = null
-                 var money : Int? = null
-
-                 nickName = strArray[strArray.lastIndex - 1].trim().lowercase()
-                 if(strArray[strArray.lastIndex - 2].contains("입금")) {
-                     money = strArray[strArray.lastIndex - 2].trim().replace("입금 ", "")
-                         .replace("원", "")
-                         .replace(",", "").toInt()
-                 }
-                 if(nickName != null && money != null) {
-                     val model = DepositModel(Instant.now().toEpochMilli(), money, nickName)
-                     mUserPrepared = false
-                     firebaseComm.getUsers()
-                     CoroutineScope(Dispatchers.Main).launch {
-                         while (!mUserPrepared) {
-                             delay(10)
-                         }
-                         val name = mUserList?.containsName(model.name)
-                         if (name != null) {
-                             val user = FromMap.toUserModel(mUserList!![name]!!)
-                             val money = user.money + model.money
-                             firebaseComm.setMoney(name, money)
-
-                             val historyModel = HistoryModel(
-                                 System.currentTimeMillis(),
-                                 name,
-                                 Constants.HISTORY_DEPOSIT,
-                                 model.money,
-                                 mapOf(),
-                                 "카뱅"
-                             )
-                             firebaseComm.addHistory(historyModel)
-                         } else {
-                             firebaseComm.addDepositItem(model)
-                         }
-                     }
-                 }
-             }
-         }
-     }
-     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
-         super.onNotificationRemoved(sbn)
-     }
-
-
+    override fun onCreate() {
+        super.onCreate()
+        inbox = DepositInbox(this)
+        firebaseComm.liveOwner.observeForever(ownerObserver)
+    }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startNotiService()
+        drainInbox()
+        return START_STICKY
+    }
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        connected = true
+        startNotiService()
+        activeNotifications?.forEach { capture(it) }
+        drainInbox()
+    }
+    override fun onListenerDisconnected() {
+        connected = false
+        super.onListenerDisconnected()
+    }
+    override fun onNotificationPosted(sbn: StatusBarNotification?) {
+        sbn?.let { capture(it) }
+    }
+    private fun capture(sbn: StatusBarNotification) {
+        if (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0) return
+        val owner = FirebaseAuth.getInstance().currentUser?.email?.replace(".", "") ?: return
+        val body = sbn.notification.extras?.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
+            ?: sbn.notification.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: return
+        val bankAccount = if (Utils.getPref(this, "databaseOwner") == owner) Utils.getPref(this, "bankAccount") else ""
+        val eventTime = sbn.notification.`when`.takeIf { it > 0 } ?: sbn.postTime
+        val request = DepositNotification.parse(sbn.packageName, sbn.key, eventTime, body, bankAccount) ?: return
+        if (!inbox.enqueue(owner, request)) {
+            statusText = "입금 기록 저장 실패 · 기기 저장 공간을 확인해 주세요"
+            startNotiService()
+            return
+        }
+        drainInbox()
+    }
+    private fun drainInbox() {
+        if (destroyed || saving) return
+        val owner = firebaseComm.liveOwner.value ?: return
+        val authOwner = FirebaseAuth.getInstance().currentUser?.email?.replace(".", "") ?: return
+        if (owner != authOwner) return
+        val entry = inbox.next(owner) ?: return
+        saving = true
+        firebaseComm.submit(entry.request) { result ->
+            saving = false
+            if (result.isSuccess) inbox.remove(entry)
+            if (destroyed) return@submit
+            handler.removeCallbacks(retry)
+            if (result.isSuccess) {
+                statusText = "입금 확인 중"
+                startNotiService()
+                drainInbox()
+            } else {
+                Log.w("DepositInbox", "Deposit transaction not committed")
+                statusText = "입금 저장 대기 중 · 연결 상태를 확인해 주세요"
+                startNotiService()
+                handler.postDelayed(retry, 30_000)
+            }
+        }
+    }
+    override fun onDestroy() {
+        destroyed = true
+        handler.removeCallbacksAndMessages(null)
+        firebaseComm.liveOwner.removeObserver(ownerObserver)
+        super.onDestroy()
+    }
 
      fun startNotiService() {
-         var content = "입금 확인중"
+         val content = statusText
          val builder = NotificationCompat.Builder(this, getString(R.string.app_name))
          builder.setSmallIcon(R.drawable.ic_launcher_foreground)
          val style = NotificationCompat.BigTextStyle()
@@ -200,17 +161,12 @@ import javax.inject.Inject
          val intent = Intent(this, RebootReceiver::class.java)
          val sender = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
          val mAlarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-         mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.timeInMillis, sender)
+         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || mAlarmManager.canScheduleExactAlarms()) {
+              mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.timeInMillis, sender)
+          } else {
+              mAlarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.timeInMillis, sender)
+          }
          Log.e("NotiListenerService", "setAlarmTimer")
      }
 
-     private fun Map<String, Map<String, Any>>.containsName(name : String) : String? {
-        if(this.contains(name))
-            return name
-         for (pair in this.toList()) {
-             if (pair.second["extraName"] == name)
-                 return pair.first
-         }
-        return null
-     }
 }

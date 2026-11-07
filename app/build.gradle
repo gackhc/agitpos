@@ -7,6 +7,12 @@ plugins {
     id 'dagger.hilt.android.plugin'
 }
 
+def signingProperties = new Properties()
+def signingPropertiesFile = rootProject.file('signing.properties')
+if (signingPropertiesFile.exists()) {
+    signingPropertiesFile.withInputStream { signingProperties.load(it) }
+}
+
 android {
     compileSdkVersion 32
     buildToolsVersion '32.0.0'
@@ -21,32 +27,29 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (signingPropertiesFile.exists()) {
+            release {
+                storeFile rootProject.file(signingProperties['storeFile'])
+                storePassword signingProperties['storePassword']
+                keyAlias signingProperties['keyAlias']
+                keyPassword signingProperties['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            if (signingPropertiesFile.exists()) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_9
-        targetCompatibility JavaVersion.VERSION_1_9
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
         jvmTarget = '1.8'
-    }
-    signingConfigs {
-        debug {
-            storeFile file("/keystore.jks")
-            storePassword "157394qQ"
-            keyAlias "key0"
-            keyPassword "157394qQ"
-        }
-        release {
-            storeFile file("/keystore.jks")
-            storePassword "157394qQ"
-            keyAlias "key0"
-            keyPassword "157394qQ"
-        }
     }
     dataBinding {
         enabled true

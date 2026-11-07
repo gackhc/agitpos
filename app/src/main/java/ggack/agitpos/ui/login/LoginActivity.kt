@@ -27,6 +27,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import ggack.agitpos.R
+import ggack.agitpos.data.login.UserSession
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.networkmodel.HistoryModel
 import ggack.agitpos.databinding.ActivityLoginBinding
@@ -48,6 +49,7 @@ import kotlin.concurrent.timer
 class LoginActivity : BaseActivity() {
     @Inject
     lateinit var firebaseComm: FirebaseComm
+    @Inject lateinit var session: UserSession
     private val viewModel by viewModels<LoginViewModel>()
     private lateinit var binding : ActivityLoginBinding
 
@@ -101,6 +103,7 @@ class LoginActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        session.clear()
         Utils.setPref(this, "restart", false)
         if(!Settings.canDrawOverlays(this)) {
             val intent = Intent(
@@ -142,6 +145,12 @@ class LoginActivity : BaseActivity() {
 
     private var firstDate = 0L
     private fun initObserver() {
+        firebaseComm.liveError.observe(this) { message ->
+            if (!message.isNullOrBlank()) {
+                Utils.toast(this, message)
+                firebaseComm.liveError.value = null
+            }
+        }
         viewModel.liveUserData.observe(this) {
             it?.let {
                 mAdapter?.map = it
@@ -149,24 +158,10 @@ class LoginActivity : BaseActivity() {
                 mAdapter?.notifyDataSetChanged()
             }
         }
-        viewModel.liveHistory.observe(this) {
-            val list = it?.values?.toList()?.sortedBy { it.date }?.reversed()
-            list?.forEach {model->
-                if(mListHistory.size < 30) {
-                    if(mListHistory.isEmpty())
-                        firstDate = model.date
-                    mListHistory.addLast(model)
-                    mHistoryAdapter?.notifyItemInserted(mListHistory.lastIndex)
-                } else if (model.date > firstDate){
-                    mListHistory.removeLast()
-                    mHistoryAdapter?.notifyItemRemoved(mListHistory.lastIndex + 1)
-                    mListHistory.push(model)
-                    mHistoryAdapter?.notifyItemInserted(0)
-                    firstDate = model.date
-                    binding.rvHistory.scrollToPosition(0)
-                } else
-                    return@observe
-            }
+        viewModel.liveHistory.observe(this) { history ->
+            mListHistory.clear()
+            mListHistory.addAll(history?.values.orEmpty().sortedByDescending { it.date }.take(30))
+            mHistoryAdapter?.notifyDataSetChanged()
         }
         viewModel.liveValidate.observe(this) {
             if (!it) {

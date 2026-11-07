@@ -16,6 +16,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.EventModel
 import ggack.agitpos.data.model.networkmodel.*
+import ggack.agitpos.domain.Membership
+import ggack.agitpos.domain.LedgerAction
+import ggack.agitpos.domain.LedgerRequest
+import java.util.UUID
 import ggack.agitpos.data.sms.SmsManager
 import ggack.agitpos.ui.base.BaseViewModel
 import ggack.agitpos.utils.CharSearcher
@@ -54,7 +58,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
         liveUserData = Transformations.map(firebaseComm.liveUserList){it}
         liveDeposits = Transformations.map(firebaseComm.liveDeposits){it}
         liveItems = Transformations.map(firebaseComm.liveItemList){
-            val list = FromMap.toItemModels(it)
+            val list = it
             _liveHasMonthlyMemberItem.postValue(false)
             for(item in list) {
                 if(item.name == "월간 회원권"){
@@ -85,9 +89,6 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
     fun refreshItems() {
         firebaseComm.getItems()
     }
-    fun setMoney(name : String, money : Int) {
-        firebaseComm.setMoney(name, money)
-    }
     fun removeItem(model : ItemModel) {
         firebaseComm.removeItem(model)
     }
@@ -96,9 +97,7 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
     }
     fun setItems(list : List<ItemModel>) {
         val map = mutableMapOf<String, Map<String, Any>>()
-        for(i in 0 until list.lastIndex) {
-            map[list[i].idx.toString()] = list[i].getMap()
-        }
+        list.filter { it.viewType != -1 }.forEach { map[it.idx.toString()] = it.getMap() }
         firebaseComm.setItems(map)
     }
     fun changePin(name : String, pin : String) {
@@ -115,16 +114,9 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
         liveCurrentUserName.postValue(name)
         liveCurrentUserExtraName.postValue(user.extraName)
         liveCurrentUserMoney.postValue(user.money)
-        if(user.member?.length == 6) {
-            val date = user.member + "31"
-            val format = DateTimeFormatter.ofPattern("yyyyMMdd")
-            liveCurrentUserMemberDate.postValue(LocalDate.parse(date, format).format(DateTimeFormatter.ofPattern("MM월 dd일 만료")))
-            liveCurrentUserMember.postValue(LocalDate.now().isBefore(LocalDate.parse(date, format)))
-        } else if (user.member?.length == 14) {
-            val format = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-            liveCurrentUserMemberDate.postValue(LocalDateTime.parse(user.member, format).format(DateTimeFormatter.ofPattern("MM월 dd일 HH시 만료")))
-            liveCurrentUserMember.postValue(LocalDateTime.now().isBefore(LocalDateTime.parse(user.member, format)))
-        }
+        val expiry = Membership.expiry(user.member)
+        liveCurrentUserMemberDate.postValue(expiry?.format(DateTimeFormatter.ofPattern("MM월 dd일 HH시 만료")) ?: "")
+        liveCurrentUserMember.postValue(expiry != null && LocalDateTime.now().isBefore(expiry))
 
         liveCurrentUserSupervisor.postValue(user.isSupervisor == true)
         liveCurrentUserBonus.postValue(user.svBonus?:2022120100)
@@ -157,59 +149,18 @@ class MainViewModel @Inject constructor(private val firebaseComm: FirebaseComm, 
             if(list.size <= 1) 1 else list.last().idx + 1))
     }
 
-    fun onPayment(list : List<ItemModel>) {
-        val map = mutableMapOf<String, Map<String, Any>>()
-        var total = 0
-        var money = liveCurrentUserMoney.value?:0
-        list.forEach {model->
-            if(model.name.contains("운영진 출첵")) {
-                var bonus = liveCurrentUserBonus.value?:2022120100L
-                var cnt = bonus % 100L
-                val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
-                val date = LocalDate.parse(Math.floorDiv(bonus, 100).toString(), dtf)
-                val today = LocalDate.now()
-                //같은날이면 x
-                if(date.isBefore(today)) {
-                    //새로운달이면 처음부터
-                    //8번 이상이면 x
-                    if(date.monthValue == today.monthValue && cnt < 8) {
-                        money += 6500
-                    } else if(date.monthValue != today.monthValue){
-                        cnt = 0L
-                        money += 6500
-                    }
-                    cnt++
-                    map[String.format("운영진 출첵 %d|8", cnt)] = model.getMap()
-                    firebaseComm.setSvBonus(liveCurrentUserName.value?:"", today.format(dtf).toLong() * 100L + cnt)
-                }
-            } else {
-                map[model.name] = model.getMap()
-                total += model.price * model.cnt
-            }
-        }
-        val timeLimitMonth = LocalDateTime.now().plusMonths(1).withDayOfMonth(1).plusMinutes(1).withHour(8).withMinute(0)
-        var timeLimitWeek = LocalDateTime.now().plusWeeks(1).withHour(8).withMinute(0)
-        timeLimitWeek = timeLimitWeek.minusDays(timeLimitWeek.dayOfWeek.value - 1L)
+    val liveSaving = MutableLiveData(false)
+    fun onPayment(list: List<ItemModel>, callback: (Result<Unit>) -> Unit) =
+        payFor(liveCurrentUserName.value ?: "", list, "", callback)
 
-        if(map.keys.contains("월간 회원권"))
-            firebaseComm.setMembership(liveCurrentUserName.value?:"",
-                timeLimitMonth.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")))
-        if(map.keys.contains("주간 회원권"))
-            firebaseComm.setMembership(liveCurrentUserName.value?:"",
-                timeLimitWeek.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")))
-
-        firebaseComm.setMoney(liveCurrentUserName.value?:"", money - total)
-        if(map.isNotEmpty()) {
-            firebaseComm.addHistory(
-                HistoryModel(
-                    Instant.now().toEpochMilli(),
-                    liveCurrentUserName.value ?: "",
-                    Constants.HISTORY_PAYMENT,
-                    total,
-                    map,
-                    ""
-                )
-            )
+    fun payFor(name: String, list: List<ItemModel>, operator: String, callback: (Result<Unit>) -> Unit) {
+        if (liveSaving.value == true) return
+        liveSaving.value = true
+        val request = LedgerRequest(UUID.randomUUID().toString(), System.currentTimeMillis(),
+            LedgerAction.Payment(name, list.map { it.copy() }, operator))
+        firebaseComm.submit(request) { result ->
+            liveSaving.value = false
+            callback(result)
         }
     }
 

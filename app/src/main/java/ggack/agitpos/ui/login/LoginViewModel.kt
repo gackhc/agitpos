@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ggack.agitpos.data.login.UserSession
 import ggack.agitpos.data.firebase.FirebaseComm
 import ggack.agitpos.data.model.EventModel
 import ggack.agitpos.data.model.networkmodel.AccountModel
@@ -19,7 +20,7 @@ import ggack.agitpos.utils.Constants
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm) : BaseViewModel() {
+class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm, private val session: UserSession) : BaseViewModel() {
     lateinit var liveUserData : LiveData<Map<String, Map<String, Any>>?>
     lateinit var liveHistory : LiveData<MutableMap<String, HistoryModel>?>
     lateinit var liveValidate : LiveData<Boolean>
@@ -107,12 +108,13 @@ class LoginViewModel @Inject constructor(private val firebaseComm: FirebaseComm)
             liveUserData.value?.get(liveEtId.value?.lowercase())?.let {
                 val model = FromMap.toUserModel(it)
                 if (s.toString() == model.pin) {
+                    session.signIn(liveEtId.value.orEmpty().lowercase())
                     liveEvent.postValue(EventModel(Constants.ACTION_TOAST, "로그인 성공"))
                     firebaseComm.getItems()
 
                     val intent = Intent()
                     intent.putExtra("name", liveEtId.value?.lowercase())
-                    intent.putExtra("isMaster", liveEtId.value?.toString() == "*master")
+                    intent.putExtra("isMaster", session.name == "*master")
                     liveEvent.postValue(EventModel(Constants.ACTION_START_ACTIVITY_MAIN, intent))
                 } else
                     liveEtPin.postValue("")

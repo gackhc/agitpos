@@ -93,29 +93,14 @@ class MasterChargeFragment : Fragment() {
                     val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
                         when (it) {
                             RESULT_OK -> {
-                                val map = mutableMapOf<String, Map<String, Any>>()
-                                mListPayment.forEach { model ->
-                                    map[model.name] = model.getMap()
+                                viewModel.payFor(mUserName, mListPayment, "마스터") { result ->
+                                    if (binding == null) return@payFor
+                                    context?.let { Toast.makeText(it, result.fold(
+                                        onSuccess = { "결제가 완료되었습니다." },
+                                        onFailure = { it.message ?: "결제를 저장하지 못했습니다." }
+                                    ), Toast.LENGTH_LONG).show() }
+                                    if (result.isSuccess) activity?.onBackPressed()
                                 }
-                                if (map.keys.contains("월간 회원권"))
-                                    firebaseComm.setMembership(
-                                        mUserName,
-                                        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-                                    )
-                                firebaseComm.setMoney(mUserName, user.money - mTotal)
-                                firebaseComm.addHistory(
-                                    HistoryModel(
-                                        Instant.now().toEpochMilli(),
-                                        mUserName,
-                                        Constants.HISTORY_PAYMENT,
-                                        mTotal,
-                                        map,
-                                        "마스터"
-                                    )
-                                )
-                                Toast.makeText(requireContext(), "결제가 완료되었습니다.", Toast.LENGTH_SHORT)
-                                    .show()
-                                activity?.onBackPressed()
                             }
                             RESULT_CANCELED -> {
 
@@ -169,7 +154,7 @@ class MasterChargeFragment : Fragment() {
                 }
 
                 override fun onDelete() {
-                    TODO("Not yet implemented")
+                    // New items have no delete action.
                 }
 
             })
@@ -179,6 +164,11 @@ class MasterChargeFragment : Fragment() {
     }
 
     fun initObserver() {
+        viewModel.liveSaving.observe(viewLifecycleOwner) { saving ->
+            binding?.btnPayment?.isEnabled = !saving
+            binding?.etNickname?.isEnabled = !saving
+            binding?.btnPayment?.text = if (saving) "저장 중…" else "결제"
+        }
         viewModel.liveUserData.observe(viewLifecycleOwner) {
             it?.let {
                 mUserData = it
@@ -201,6 +191,10 @@ class MasterChargeFragment : Fragment() {
             mUser = FromMap.toUserModel(mUserData[name]!!)
             mUserName = name
             binding?.tvPoint?.text = "${mUser?.money} ￦"
+        } else {
+            mUser = null
+            mUserName = ""
+            binding?.tvPoint?.text = "사용자를 선택해 주세요"
         }
     }
     private fun initAdapter() {

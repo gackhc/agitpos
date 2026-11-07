@@ -127,9 +127,14 @@ class MainClientFragment : Fragment() {
             val dlg = SimpleDialog(requireContext(), SimpleDialog.TYPE_TWO_BUTTON) {
                 when (it) {
                     RESULT_OK -> {
-                        viewModel.onPayment(mListPayment)
-                        Toast.makeText(requireContext(), "결제가 완료되었습니다.", Toast.LENGTH_SHORT).show()
-                        activity?.onBackPressed()
+                        viewModel.onPayment(mListPayment) { result ->
+                            if (binding == null) return@onPayment
+                            context?.let { Toast.makeText(it, result.fold(
+                                onSuccess = { "결제가 완료되었습니다." },
+                                onFailure = { it.message ?: "결제를 저장하지 못했습니다." }
+                            ), Toast.LENGTH_LONG).show() }
+                            if (result.isSuccess) activity?.onBackPressed()
+                        }
                     }
                     RESULT_CANCELED -> {
 
@@ -143,6 +148,10 @@ class MainClientFragment : Fragment() {
     }
 
     fun initObserver() {
+        viewModel.liveSaving.observe(viewLifecycleOwner) { saving ->
+            binding?.btnPayment?.isEnabled = !saving
+            binding?.btnPayment?.text = if (saving) "저장 중…" else "결제"
+        }
         viewModel.liveCurrentUserMember.observe(viewLifecycleOwner) {
             if (it) {
                 for (i in mListItems.lastIndex downTo 0) {
@@ -293,11 +302,11 @@ class MainClientFragment : Fragment() {
     fun setTimer() {
         mLogoutTimer?.cancel()
         mLogoutTimer = timer(initialDelay = 1000, period = 1000) {
-            mTime = mTime.minusSeconds(1)
+            if (viewModel.liveSaving.value != true) mTime = mTime.minusSeconds(1)
             Handler(Looper.getMainLooper()).post{
                 val sdf = DateTimeFormatter.ofPattern("m:ss")
                 binding?.tvLogOutTime?.text = mTime.format(sdf)
-                if(mTime.second == 0) {
+                if(mTime.second == 0 && viewModel.liveSaving.value != true) {
                     Toast.makeText(context, "로그인 시간이 만료되었습니다.", Toast.LENGTH_SHORT).show()
                     activity?.onBackPressed()
                 }
